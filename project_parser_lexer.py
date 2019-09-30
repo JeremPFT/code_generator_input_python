@@ -7,10 +7,11 @@ reserved = {
     'package'          : 'PACKAGE_START',
     'end_package'      : 'PACKAGE_STOP',
     'class'            : 'CLASS_START',
-    '!end_class'       : 'CLASS_STOP',
+    'end_class'        : 'CLASS_STOP',
     'field'            : 'FIELD_START',
     'end_field'        : 'FIELD_STOP',
     'use'              : 'USE',
+    'subprogram'       : 'SUBPROGRAM',
 }
 
 tokens = [
