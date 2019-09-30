@@ -28,7 +28,7 @@ def t_IDENTIFIER(t):
 
 def t_COMMENT(t):
     r'-- .*'
-    return t
+    pass
 
 def t_STRING(t):
     r'".*"'
@@ -38,6 +38,9 @@ def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
+def t_eof(t):
+    return None
+
 def t_error(t):
     print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
@@ -46,21 +49,23 @@ def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-lexer = lex.lex()
+lexer = lex.lex(debug = 0)
 
-
-data = '''
+def test_lexer():
+    data = '''
 project project_name
 output_directory "c:\"
 -- a basic example to test the parser
 end_project
-'''
+    '''
 
-lexer.input(data)
+    lexer.input(data)
 
-while True:
-    tok = lexer.token()
-    if not tok:
-        break      # No more input
-    print(tok)
-    print('column: ' + str(find_column(data, tok)))
+    token = lexer.token()
+    while token != None :
+        print(token)
+        print('column: ' + str(find_column(data, token)))
+        token = lexer.token()
+
+if __name__ == '__main__':
+    test_lexer()
