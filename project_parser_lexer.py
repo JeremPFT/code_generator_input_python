@@ -59,7 +59,7 @@ def t_IDENTIFIER(t):
     return t
 
 def t_COMMENT(t):
-    r'-- .*'
+    r'--.*'
     pass
 
 def t_STRING(t):
