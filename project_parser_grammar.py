@@ -3,19 +3,24 @@ import ply.yacc as yacc
 import project_parser_lexer
 from project_parser_lexer import tokens
 
-from model import Project, Package, Class, Subprogram
+from model import Project, Package, Class, Subprogram, Procedure, Function, Parameter
 
 '''
-project_def              : PROJECT_START project_name output_directory package_list PROJECT_STOP;
-project_name             : IDENTIFIER;
-IDENTIFIER               : [a-z][a-z0-9_];
-output_directory         : quoted_string;
-package_list             : NULL | package_list package_def;
-package_def              : PACKAGE_START package_name dependance_list packageable_element_list PACKAGE_STOP;
-package_name             : IDENTIFIER;
-dependance_list          : NULL | dependance_list dependance_def;
-packageable_element_list : NULL | packageable_element_list packageable_element_def;
+project                  : PROJECT_START IDENTIFIER output_directory package_list PROJECT_STOP
+output_directory         : quoted_string
+package_list             : <empty> | package_list package_def
+package_def              : PACKAGE_START IDENTIFIER dependance_list packageable_element_list PACKAGE_STOP
+dependance_list          : <empty> | dependance_list dependance_def
+dependance_def           : WITH IDENTIFIER
+packageable_element_list : <empty> | packageable_element_list packageable_element_def
 packageable_element_def  : type_def | subprogram_def
+subprogram_def           : SUBPROGRAM IDENTIFIER LPAREN parameter_def parameter_list RPAREN COMMA returned_type
+parameter_list           : <empty> | parameter_list SEMICOLON parameter_def
+parameter_def            : IDENTIFIER COLON parameter_mode IDENTIFIER COLONEQ VALUE
+                         | IDENTIFIER COLON parameter_mode IDENTIFIER
+param_mode               : IN OUT | IN | OUT
+type_def                 : class_def | enum_def
+visibility               : PRIVATE | PROTECTED | PUBLIC
 '''
 
 def p_project(p):
@@ -36,8 +41,21 @@ def p_package_list_2(p):
     p[0] = p[1]
 
 def p_package_def(p):
-    'package_def : PACKAGE_START IDENTIFIER packageable_element_list PACKAGE_STOP'
+    'package_def : PACKAGE_START IDENTIFIER dependance_list packageable_element_list PACKAGE_STOP'
     p[0] = Package(p[2], p[3])
+
+def p_dependance_list_1(p):
+    'dependance_list : '
+    p[0] = []
+
+def p_dependance_list_2(p):
+    'dependance_list : dependance_list dependance_def'
+    p[1].append(p[2])
+    p[0] = p[1]
+
+def p_dependance_def(p):
+    'dependance_def : with IDENTIFIER'
+    p[0] = Dependance(p[2], p[3])
 
 def p_packageable_element_list_1(p):
     'packageable_element_list : '
@@ -49,17 +67,67 @@ def p_packageable_element_list_2(p):
     p[0] = p[1]
 
 def p_packageable_element(p):
-    '''packageable_element : class_definition
-                           | subprogram_definition'''
+    '''packageable_element : class_def
+                           | subprogram_def'''
     p[0] = p[1]
 
-def p_class_definition(p):
-    'class_definition : CLASS_START IDENTIFIER CLASS_STOP'
+def p_class_def(p):
+    'class_def : CLASS_START IDENTIFIER CLASS_STOP'
     p[0] = Class(p[2])
 
-def p_subprogram_definition(p):
-    'subprogram_definition : SUBPROGRAM IDENTIFIER'
-    p[0] = Subprogram(p[2], [])
+def p_subprogram_def_1(p):
+    'subprogram_def : PROCEDURE IDENTIFIER LPAREN parameter_def parameter_list RPAREN'
+    p[5].append(p[4])
+    p[0] = Procedure(p[2], p[5])
+
+def p_subprogram_def_2(p):
+    'subprogram_def : PROCEDURE IDENTIFIER'
+    p[0] = Procedure(p[2], [])
+
+def p_subprogram_def_3(p):
+    'subprogram_def : FUNCTION IDENTIFIER LPAREN parameter_def parameter_list RPAREN COLON returned_type'
+    name     = 2
+    params   = 5
+    returned = 8
+    p[params].append(p[params - 1])
+    p[0] = Function(p[name], p[returned], p[params])
+
+def p_subprogram_def_4(p):
+    'subprogram_def : FUNCTION IDENTIFIER COLON returned_type'
+    name     = 2
+    returned = 4
+    p[0] = Function(p[name], p[returned], [])
+
+def p_parameter_list_1(p):
+    'parameter_list : '
+    p[0] = []
+
+def p_parameter_list_2(p):
+    'parameter_list : parameter_list SEMICOLON parameter_def'
+    p[1].append(p[3])
+    p[0] = p[1]
+
+def p_parameter_def(p):
+    'parameter_def : IDENTIFIER COLON parameter_mode IDENTIFIER COLONEQ VALUE'
+    p[0] = Parameter(p[1], p[3])
+
+def p_parameter_def(p):
+    'parameter_def : IDENTIFIER COLON parameter_mode IDENTIFIER'
+    p[0] = Parameter(p[1], p[3])
+
+def p_parameter_mode_1(p):
+    'parameter_mode : IN OUT'
+    p[0] = Parameter_Mode("in out")
+    p[0] = p_mode_in_out
+
+def p_parameter_mode_2(p):
+    '''parameter_mode : IN
+                      | OUT'''
+    p[0] = Parameter_Mode(p[1])
+
+def p_returned_type(p):
+    'returned_type : IDENTIFIER'
+    p[0] = p[1]
 
 def p_error(p):
     if p == None:
@@ -77,19 +145,7 @@ def p_error(p):
 parser = yacc.yacc()
 
 def test_grammar():
-    data = '''project a_project_name
-output_directory "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/ada/code_generator_input/examples/model"
-    package pkg_1_name
-        class pkg_1_cls_1_name end_class
-        class pkg_1_cls_2_name end_class
-        subprogram pkg_1_subprg_1_name
-    end_package
-    package pkg_2_name
-        class pkg_2_cls_1_name end_class
-        class pkg_2_cls_2_name end_class
-    end_package
-end_project
-    '''
+    data = open("data.txt", "r").read()
 
     result = parser.parse(data)
     if result != None:

@@ -12,19 +12,50 @@ reserved = {
     'end_field'        : 'FIELD_STOP',
     'use'              : 'USE',
     'subprogram'       : 'SUBPROGRAM',
+    'function'         : 'FUNCTION',
+    'procedure'        : 'PROCEDURE',
+    'with'             : 'WITH',
+    'in'               : 'IN',
+    'out'              : 'OUT',
 }
 
 tokens = [
+    'LPAREN',
+    'RPAREN',
+    'SEMICOLON',
+    'COLON',
+    'COLONEQ'
     'IDENTIFIER',
     'COMMENT',
     'STRING',
+    'VALUE',
 ] + list(reserved.values())
 
 t_ignore  = ' \t'
 
+def t_LPAREN(t):
+    r'\('
+    return t
+
+def t_RPAREN(t):
+    r'\)'
+    return t
+
+def t_SEMICOLON(t):
+    r';'
+    return t
+
+def t_COLON(t):
+    r':'
+    return t
+
+def t_COLONEQ(t):
+    r':='
+    return t
+
 def t_IDENTIFIER(t):
-    r'[a-zA-Z][a-zA-Z_0-9]*'
-    t.type = reserved.get(t.value,'IDENTIFIER')
+    r'[a-zA-Z][a-zA-Z_0-9.]*'
+    t.type = reserved.get(t.value, 'IDENTIFIER')
     return t
 
 def t_COMMENT(t):
@@ -34,6 +65,9 @@ def t_COMMENT(t):
 def t_STRING(t):
     r'".*"'
     return t
+
+def t_VALUE(t):
+    r'(".*")|([a-z0-9]+)'
 
 def t_newline(t):
     r'\n+'
