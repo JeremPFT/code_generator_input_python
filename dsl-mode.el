@@ -1,7 +1,11 @@
 ;; a simple major mode for domain specific langage *.dsl
 
-;; see http://ergoemacs.org/emacs/elisp_syntax_coloring.html
-
+;; see
+;; http://ergoemacs.org/emacs/elisp_syntax_coloring.html
+;; http://ergoemacs.org/emacs/elisp_syntax_table.html
+;; http://ergoemacs.org/emacs/elisp_comment_coloring.html
+;; http://www.wilfred.me.uk/blog/2015/03/19/adding-a-new-language-to-emacs/
+;; http://www.modernemacs.com/post/major-mode-part-1/
 
 (defvar dsl-mode-syntax-table nil "Syntax table for `dsl-mode'.")
 
