@@ -6,72 +6,61 @@
 ;; http://ergoemacs.org/emacs/elisp_comment_coloring.html
 ;; http://www.wilfred.me.uk/blog/2015/03/19/adding-a-new-language-to-emacs/
 ;; http://www.modernemacs.com/post/major-mode-part-1/
+;; font lock taken from ada-mode
 
 (defvar dsl-mode-syntax-table nil "Syntax table for `dsl-mode'.")
 
 (setq dsl-mode-syntax-table
-      (let ( (synTable (make-syntax-table)))
-        (modify-syntax-entry ?- ". 12b" synTable)
-        (modify-syntax-entry ?\n "> b" synTable)
-        (modify-syntax-entry ?_ "w" synTable)
-        synTable))
+      (let ( (table (make-syntax-table)))
+        (modify-syntax-entry ?- ". 12b" table)
+        (modify-syntax-entry ?\n "> b" table)
+        ;; (modify-syntax-entry ?_ "w" table)
+        (modify-syntax-entry ?\" "\"" table)
+        table))
 
-;; (setq dsl-highlights
-;;       '(("project\\|package\\|value_object" . font-lock-function-name-face)
-;;         ("output_directory\\|is\\|abstract\\|limited\\|with\\|use\\|pre\\|post\\|end_implementation\\|implementation" . font-lock-constant-face)))
 
-(setq dsl-font-lock-keywords
-      (let* (
-            ;; define several category of keywords
-            (x-keywords '(
-                          "abstract"
-                          "and"
-                          "or"
-                          "end"
-                          "command"
-                          "implementation"
-                          "initialize"
-                          "is"
-                          "package"
-                          "post"
-                          "pre"
-                          "project"
-                          "query"
-                          "return"
-                          "value_object"
-                          "vector"
-                          ))
-            ;; (x-types '("is" "abstract" "vector"))
-            ;; (x-constants '("ACTIVE" "AGENT" "ALL_SIDES" "ATTACH_BACK"))
-            ;; (x-events '("at_rot_target" "at_target" "attach"))
-            ;; (x-functions '("implementation)"))
+(defvar dsl-keywords '(
+                       "abstract"
+                       "and"
+                       "or"
+                       "end"
+                       "command"
+                       "implementation"
+                       "initialize"
+                       "is"
+                       "package"
+                       "post"
+                       "pre"
+                       "project"
+                       "query"
+                       "return"
+                       "value_object"
+                       "vector"
+                       ))
 
-            ;; generate regex string for each category of keywords
-            (x-keywords-regexp (regexp-opt x-keywords 'words))
-            ;; (x-types-regexp (regexp-opt x-types 'words))
-            ;; (x-constants-regexp (regexp-opt x-constants 'words))
-            ;; (x-events-regexp (regexp-opt x-events 'words))
-            ;; (x-functions-regexp (regexp-opt x-functions 'words))
-            )
+(defun dsl-font-lock-keywords ()
+  (list
+   (list (concat "\\<" (regexp-opt dsl-keywords t) "\\>") '(0 font-lock-keyword-face))
+   ))
 
-        `(
-          (,x-keywords-regexp . font-lock-keyword-face)
-          ;; (,x-types-regexp . font-lock-type-face)
-          ;; (,x-constants-regexp . font-lock-constant-face)
-          ;; (,x-events-regexp . font-lock-builtin-face)
-          ;; (,x-functions-regexp . font-lock-function-name-face)
-
-          ;; note: order above matters, because once colored, that part won't change.
-          ;; in general, put longer words first
-          )))
+(defvar dsl-font-lock-defaults
+  `((
+     ("\"\\.\\*\\?" . font-lock-string-face)
+     ( ,(regexp-opt dsl-keywords 'words) . font-lock-keyword-face)
+     )))
 
 (define-derived-mode dsl-mode text-mode "dsl"
   "major mode for editing Domain Specific Langage code."
-  (setq font-lock-defaults '(dsl-font-lock-keywords)))
+  (setq font-lock-defaults
+	'(dsl-font-lock-keywords ;; keywords
+	  nil
+	  t
+	  ((?\_ . "w")))); treat underscore as a word component
+)
 
 
 (provide 'dsl-mode)
 
 (add-to-list 'auto-mode-alist '("\\.dsl\\'" . dsl-mode))
 
-;;; mylsl-mode.el ends here
+;;; dsl-mode.el ends here
