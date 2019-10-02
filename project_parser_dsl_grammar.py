@@ -55,7 +55,7 @@ def p_package_list_full(p):
     p[0] = p[1]
 
 def p_package_item(p):
-    'package_item : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE'
+    'package_item : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE IDENTIFIER'
     p[0] = Package(p[2], p[3])
 
 def p_dependance_list_empty(p):
@@ -83,83 +83,83 @@ def p_packageable_element_list_empty(p):
     'packageable_element_list : '
     p[0] = []
 
-def p_packageable_element_list_one_or_more(p):
-    'packageable_element_list : packageable_element_list packageable_element_item'
-    p[1].append(p[2])
-    p[0] = p[1]
+# def p_packageable_element_list_one_or_more(p):
+#     'packageable_element_list : packageable_element_list packageable_element_item'
+#     p[1].append(p[2])
+#     p[0] = p[1]
 
-def p_packageable_element_item(p):
-    '''packageable_element_item : subprogram_item
-                               | value_object_item
-    '''
-    p[0] = p[1]
+# def p_packageable_element_item(p):
+#     '''packageable_element_item : subprogram_item
+#                                 | value_object_item
+#     '''
+#     p[0] = p[1]
 
-def p_value_object_item(p):
-    'value_object_item : value_object_begin value_object_content value_object_end'
-    p[0] = Class(p[2])
+# def p_value_object_item(p):
+#     'value_object_item : value_object_begin value_object_content value_object_end'
+#     p[0] = Class(p[2])
 
-def p_value_object_begin_abstract_params(p):
-    'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
-    is_abstract = true
-    parent = 5
-    name = 3
-    the_class = Class(name = p[name], is_abstract = is_abstract, parent = p[parent])
+# def p_value_object_begin_abstract_inherit(p):
+#     'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
+#     is_abstract = true
+#     parent = 5
+#     name = 3
+#     the_class = Class(name = p[name], is_abstract = is_abstract, parent = p[parent])
 
-def p_value_object_begin_abstract_no_param(p):
-    'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER'
+# def p_value_object_begin_abstract(p):
+#     'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER'
 
-def p_value_object_begin_params(p):
-    'value_object_begin : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
+# def p_value_object_begin_inherit(p):
+#     'value_object_begin : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
 
-def p_value_object_begin_no_param(p):
-    'value_object_begin : VALUE_OBJECT IDENTIFIER'
+# def p_value_object_begin_simple(p):
+#     'value_object_begin : VALUE_OBJECT IDENTIFIER'
 
-def p_value_object_content(p):
-    'value_object_content : dependance_list initialization behavior_list'
+# def p_value_object_content(p):
+#     'value_object_content : dependance_list initialization behavior_list'
 
-def p_value_object_end(p):
-    'value_object_end : END VALUE_OBJECT'
+# def p_value_object_end(p):
+#     'value_object_end : END VALUE_OBJECT'
 
-def p_initialization(p):
-    'initialization : INITIALIZE parameter_list contract_list implementation'
+# def p_initialization(p):
+#     'initialization : INITIALIZE parameter_list contract_list implementation'
 
-def p_behavior_list_empty(p):
-    'behavior_list : '
-    p[0] = []
+# def p_behavior_list_empty(p):
+#     'behavior_list : '
+#     p[0] = []
 
-def p_behavior_list_one_or_more(p):
-    'behavior_list : behavior_list behavior_item'
-    p[0] = []
+# def p_behavior_list_one_or_more(p):
+#     'behavior_list : behavior_list behavior_item'
+#     p[0] = []
 
-def p_behavior_item(p):
-    'behavior_item : behavior_begin behavior_content behavior_end'
-    p[0] = Class(p[2])
+# def p_behavior_item(p):
+#     'behavior_item : behavior_begin behavior_content behavior_end'
+#     p[0] = Class(p[2])
 
-def p_behavior_begin_init(p):
-    'behavior_begin : INITIALIZE contract_list'
+# def p_behavior_begin_init(p):
+#     'behavior_begin : INITIALIZE contract_list'
 
-def p_behavior_begin_query(p):
-    'behavior_begin : QUERY IDENTIFIER RETURN IDENTIFIER contract_list'
+# def p_behavior_begin_query(p):
+#     'behavior_begin : QUERY IDENTIFIER RETURN IDENTIFIER contract_list'
 
-def p_behavior_begin_command(p):
-    'behavior_begin : COMMAND IDENTIFIER contract_list'
+# def p_behavior_begin_command(p):
+#     'behavior_begin : COMMAND IDENTIFIER contract_list'
 
-def p_contract_list_empty(p):
-    'contract_list : '
-    p[0] = []
+# def p_contract_list_empty(p):
+#     'contract_list : '
+#     p[0] = []
 
-def p_contract_list_one_or_more(p):
-    'contract_list : contract_list contract_item'
-    p[0] = []
+# def p_contract_list_one_or_more(p):
+#     'contract_list : contract_list contract_item'
+#     p[0] = []
 
-def p_contract_item(p):
-    '''contract_item : PRE condition_list
-                     | POST condition_list
-    '''
-    if p[1] == "pre":
-        p[0] = Pre_Condition(condition_list)
-    elif p[1] == "post":
-        p[0] = Post_Condition(condition_list)
+# def p_contract_item(p):
+#     '''contract_item : PRE condition_list
+#                      | POST condition_list
+#     '''
+#     if p[1] == "pre":
+#         p[0] = Pre_Condition(condition_list)
+#     elif p[1] == "post":
+#         p[0] = Post_Condition(condition_list)
 
 def p_subprogram_item_with_params(p):
     'subprogram_item : PROCEDURE IDENTIFIER LPAREN parameter_item parameter_list RPAREN'

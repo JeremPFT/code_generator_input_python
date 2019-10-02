@@ -13,14 +13,15 @@ class Named_Element:
 
 
 class Project(Named_Element):
-    def __init__(self, name, out_dir, package_list):
+    def __init__(self, name, output_directory, package_list):
         super().__init__(name)
-        self.out_dir      = out_dir
-        self.package_list = package_list
+        self.output_directory = output_directory
+        self.package_list     = package_list
 
     def __str__(self):
         image = os.linesep + "========================================" + os.linesep
-        image += super().__str__() + os.linesep + "in %s" % (self.out_dir) + os.linesep
+        image += super().__str__() + os.linesep
+        image += "in %s" % (self.output_directory) + os.linesep
         indent.incr()
         j = 1
         for package in self.package_list:
