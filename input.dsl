@@ -21,9 +21,9 @@ project code_generator_model
       --  "use" implies ada "with" clause
 
       initialize
-      pre => comment_count = 0 and owned_element_count = 0
-      post => pre
-      implementation: "null;" end implementation
+      pre "comment_count = 0 and then owned_element_count = 0"
+      post "comment_count = 0 and then owned_element_count = 0"
+      implementation "null;" end implementation
       --
       --  specific subprogram to initialize an instance
       --  no parameter

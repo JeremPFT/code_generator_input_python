@@ -1,3 +1,5 @@
+#! python3
+
 import ply.yacc as yacc
 
 import project_parser_lexer
@@ -26,7 +28,10 @@ visibility               : PRIVATE | PROTECTED | PUBLIC
 
 def p_project(p):
     'project : PROJECT IDENTIFIER output_directory package_list END PROJECT'
-    p[0] = Project(p[2], p[3], p[4])
+    p[0] = \
+    Project(name             = p[2],
+            output_directory = p[3],
+            package_list     = p[4])
 
 def p_output_directory(p):
     'output_directory : OUTPUT_DIRECTORY string'
@@ -115,6 +120,9 @@ def p_value_object_content(p):
 def p_value_object_end(p):
     'value_object_end : END VALUE_OBJECT'
 
+def p_initialization(p):
+    'initialization : INITIALIZE parameter_list contract_list implementation'
+
 def p_behavior_list_empty(p):
     'behavior_list : '
     p[0] = []
@@ -150,7 +158,7 @@ def p_contract_item(p):
     '''
     if p[1] == "pre":
         p[0] = Pre_Condition(condition_list)
-    elif p[1] == "post"
+    elif p[1] == "post":
         p[0] = Post_Condition(condition_list)
 
 def p_subprogram_item_with_params(p):
