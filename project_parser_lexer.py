@@ -1,22 +1,29 @@
 import ply.lex as lex
 
 reserved = {
-    'project'          : 'PROJECT_START',
-    'end_project'      : 'PROJECT_STOP',
-    'output_directory' : 'OUTPUT_DIRECTORY',
-    'package'          : 'PACKAGE_START',
-    'end_package'      : 'PACKAGE_STOP',
-    'class'            : 'CLASS_START',
-    'end_class'        : 'CLASS_STOP',
-    'field'            : 'FIELD_START',
-    'end_field'        : 'FIELD_STOP',
-    'use'              : 'USE',
-    'subprogram'       : 'SUBPROGRAM',
+    'abstract'         : 'ABSTRACT',
+    'command'          : 'COMMAND',
+    'end'              : 'END',
+    'field'            : 'FIELD',
     'function'         : 'FUNCTION',
-    'procedure'        : 'PROCEDURE',
-    'with'             : 'WITH',
+    'implementation'   : 'IMPLEMENTATION',
     'in'               : 'IN',
+    'initialize'       : 'INITIALIZE',
+    'is'               : 'IS',
+    'limited'          : 'LIMITED',
     'out'              : 'OUT',
+    'output_directory' : 'OUTPUT_DIRECTORY',
+    'package'          : 'PACKAGE',
+    'post'             : 'POST',
+    'pre'              : 'PRE',
+    'procedure'        : 'PROCEDURE',
+    'project'          : 'PROJECT',
+    'query'            : 'QUERY',
+    'subprogram'       : 'SUBPROGRAM',
+    'use'              : 'USE',
+    'value_object'     : 'VALUE_OBJECT',
+    'vector'           : 'VECTOR',
+    'with'             : 'WITH',
 }
 
 tokens = [
@@ -24,10 +31,11 @@ tokens = [
     'RPAREN',
     'SEMICOLON',
     'COLON',
-    'COLONEQ'
+    'COLONEQ',
+    'AMP',
     'IDENTIFIER',
     'COMMENT',
-    'STRING',
+    'STRING_VALUE',
     'VALUE',
 ] + list(reserved.values())
 
@@ -53,6 +61,10 @@ def t_COLONEQ(t):
     r':='
     return t
 
+def t_AMP(t):
+    r'&'
+    return t
+
 def t_IDENTIFIER(t):
     r'[a-zA-Z][a-zA-Z_0-9.]*'
     t.type = reserved.get(t.value, 'IDENTIFIER')
@@ -62,7 +74,7 @@ def t_COMMENT(t):
     r'--.*'
     pass
 
-def t_STRING(t):
+def t_STRING_VALUE(t):
     r'".*"'
     return t
 

@@ -6,10 +6,11 @@ from project_parser_lexer import tokens
 from model import Project, Package, Class, Subprogram, Procedure, Function, Parameter
 
 '''
-project                  : PROJECT_START IDENTIFIER output_directory package_list PROJECT_STOP
-output_directory         : quoted_string
+project                  : PROJECT IDENTIFIER output_directory package_list END PROJECT
+string_list              : string | string_list AMP string
+output_directory         : string_list
 package_list             : <empty> | package_list package_def
-package_def              : PACKAGE_START IDENTIFIER dependance_list packageable_element_list PACKAGE_STOP
+package_def              : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE
 dependance_list          : <empty> | dependance_list dependance_def
 dependance_def           : WITH IDENTIFIER
 packageable_element_list : <empty> | packageable_element_list packageable_element_def
@@ -24,11 +25,19 @@ visibility               : PRIVATE | PROTECTED | PUBLIC
 '''
 
 def p_project(p):
-    'project : PROJECT_START IDENTIFIER output_directory package_list PROJECT_STOP'
+    'project : PROJECT IDENTIFIER output_directory package_list END PROJECT'
     p[0] = Project(p[2], p[3], p[4])
 
+def p_string_list_1(p):
+    'string_list : string_list AMP STRING'
+    p[0] = p[1] + p[2]
+
+def p_string_list_2(p):
+    'string_list : STRING'
+    p[0] = p[1]
+
 def p_output_directory(p):
-    'output_directory : OUTPUT_DIRECTORY STRING'
+    'output_directory : OUTPUT_DIRECTORY string_list'
     p[0] = p[2]
 
 def p_package_list_1(p):
@@ -41,7 +50,7 @@ def p_package_list_2(p):
     p[0] = p[1]
 
 def p_package_def(p):
-    'package_def : PACKAGE_START IDENTIFIER dependance_list packageable_element_list PACKAGE_STOP'
+    'package_def : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE'
     p[0] = Package(p[2], p[3])
 
 def p_dependance_list_1(p):
@@ -54,7 +63,7 @@ def p_dependance_list_2(p):
     p[0] = p[1]
 
 def p_dependance_def(p):
-    'dependance_def : with IDENTIFIER'
+    'dependance_def : WITH IDENTIFIER'
     p[0] = Dependance(p[2], p[3])
 
 def p_packageable_element_list_1(p):
@@ -72,7 +81,7 @@ def p_packageable_element(p):
     p[0] = p[1]
 
 def p_class_def(p):
-    'class_def : CLASS_START IDENTIFIER CLASS_STOP'
+    'class_def : CLASS IDENTIFIER END CLASS'
     p[0] = Class(p[2])
 
 def p_subprogram_def_1(p):
@@ -99,7 +108,7 @@ def p_subprogram_def_4(p):
     p[0] = Function(p[name], p[returned], [])
 
 def p_parameter_list_1(p):
-    'parameter_list : '
+    'parameter_list : parameter_def'
     p[0] = []
 
 def p_parameter_list_2(p):
@@ -107,11 +116,11 @@ def p_parameter_list_2(p):
     p[1].append(p[3])
     p[0] = p[1]
 
-def p_parameter_def(p):
+def p_parameter_def_1(p):
     'parameter_def : IDENTIFIER COLON parameter_mode IDENTIFIER COLONEQ VALUE'
     p[0] = Parameter(p[1], p[3])
 
-def p_parameter_def(p):
+def p_parameter_def_2(p):
     'parameter_def : IDENTIFIER COLON parameter_mode IDENTIFIER'
     p[0] = Parameter(p[1], p[3])
 
@@ -139,13 +148,13 @@ def p_error(p):
     message += str(p.lineno)
     message += ": unexpected "
     message += str(p.type)
-    # message += " " + str(p)
+    message += " " + str(p)
     print(message)
 
 parser = yacc.yacc()
 
 def test_grammar():
-    data = open("data.txt", "r").read()
+    data = open("input.dsl", "r").read()
 
     result = parser.parse(data)
     if result != None:

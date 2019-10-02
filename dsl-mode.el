@@ -19,15 +19,32 @@
 (setq dsl-font-lock-keywords
       (let* (
             ;; define several category of keywords
-            (x-keywords '("project" "package" "value_object" "end" "implementation" "query" "pre" "post"))
-            (x-types '("is" "abstract" "vector"))
+            (x-keywords '(
+                          "abstract"
+                          "and"
+                          "or"
+                          "end"
+                          "command"
+                          "implementation"
+                          "initialize"
+                          "is"
+                          "package"
+                          "post"
+                          "pre"
+                          "project"
+                          "query"
+                          "return"
+                          "value_object"
+                          "vector"
+                          ))
+            ;; (x-types '("is" "abstract" "vector"))
             ;; (x-constants '("ACTIVE" "AGENT" "ALL_SIDES" "ATTACH_BACK"))
             ;; (x-events '("at_rot_target" "at_target" "attach"))
             ;; (x-functions '("implementation)"))
 
             ;; generate regex string for each category of keywords
             (x-keywords-regexp (regexp-opt x-keywords 'words))
-            (x-types-regexp (regexp-opt x-types 'words))
+            ;; (x-types-regexp (regexp-opt x-types 'words))
             ;; (x-constants-regexp (regexp-opt x-constants 'words))
             ;; (x-events-regexp (regexp-opt x-events 'words))
             ;; (x-functions-regexp (regexp-opt x-functions 'words))
@@ -35,7 +52,7 @@
 
         `(
           (,x-keywords-regexp . font-lock-keyword-face)
-          (,x-types-regexp . font-lock-type-face)
+          ;; (,x-types-regexp . font-lock-type-face)
           ;; (,x-constants-regexp . font-lock-constant-face)
           ;; (,x-events-regexp . font-lock-builtin-face)
           ;; (,x-functions-regexp . font-lock-function-name-face)
@@ -50,5 +67,7 @@
 
 
 (provide 'dsl-mode)
+
+(add-to-list 'auto-mode-alist '("\\.dsl\\'" . dsl-mode))
 
 ;;; mylsl-mode.el ends here

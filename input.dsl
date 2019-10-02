@@ -3,15 +3,13 @@ project code_generator_model
   output_directory "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/"
                    & "ada/code_generator_input/examples/model"
 
-  --  TODO: implement the concatenation
-
   package model
 
     --------------------
     --  element
     --------------------
 
-    value_object element is abstract
+    abstract value_object element
       --
       -- define packages model.element and model.types.element
 
@@ -64,6 +62,8 @@ project code_generator_model
 
       query must_be_owned return boolean
       implementation "return true;" end implementation
+
+      command command_for_test
 
     end value_object element
 
