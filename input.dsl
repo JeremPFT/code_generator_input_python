@@ -3,6 +3,9 @@ project code_generator_model
   output_directory "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/"
                    & "ada/code_generator_input/examples/model"
 
+  package truc
+  end package truc
+
   package model
 
     --------------------
@@ -26,6 +29,7 @@ project code_generator_model
 
     abstract value_object named_element (element)
       name : string
+      xxx : yyy
     end value_object named_element
 
 --jpi    abstract value_object element
@@ -99,4 +103,6 @@ project code_generator_model
 
   end package model
 
+--  end project code_generator_modelx
+--  end project code_generator_model
 end project

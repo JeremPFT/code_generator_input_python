@@ -4,7 +4,7 @@ from indent import indent
 
 
 class Project:
-    def __init__(self, name, output_directory, package_list):
+    def __init__(self, name, output_directory = "", package_list = []):
         self.name             = name
         self.output_directory = output_directory
         self.package_list     = package_list
@@ -65,13 +65,13 @@ class Class(Named_Element):
         indent.incr()
         j = 1
         for element in self.field_list:
-            if self.parent != None and element in self.parent.field_list:
-                pass
-            else:
-              image += indent.str() + str(element)
-              j += 1
-              if j <= len(self.field_list):
-                  image += os.linesep
+            # if self.parent != None and element in self.parent.field_list:
+            #     pass
+            # else:
+            image += indent.str() + str(element)
+            j += 1
+            if j <= len(self.field_list):
+                image += os.linesep
         indent.decr()
         return image
 
