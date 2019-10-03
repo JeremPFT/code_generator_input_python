@@ -9,16 +9,26 @@ project code_generator_model
     --  element
     --------------------
 
+    abstract value_object element
+      --
+      -- define packages model.element and model.types.element
+
+      limited with model.comment
+      use model.types.element
+      use model.types.comment
+      --
+      --  dependances are the first printed lines
+      --  "use" implies ada "with" clause
+
+      owned_comments : comment_vector
+
+    end value_object element
+
+    abstract value_object named_element (element)
+      name : string
+    end value_object named_element
+
 --jpi    abstract value_object element
---jpi      --
---jpi      -- define packages model.element and model.types.element
---jpi
---jpi      limited with model.comment
---jpi      use model.types.element
---jpi      use model.types.comment
---jpi      --
---jpi      --  dependances are the first printed lines
---jpi      --  "use" implies ada "with" clause
 --jpi
 --jpi      initialize
 --jpi      ;; pre "comment_count = 0 and then owned_element_count = 0"

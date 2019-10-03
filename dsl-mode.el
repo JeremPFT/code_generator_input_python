@@ -18,6 +18,7 @@
         (modify-syntax-entry ?\" "\"" table)
         table))
 
+(defvar dsl-comment-start "--  ")
 
 (defvar dsl-keywords '(
                        "abstract"
@@ -56,6 +57,7 @@
 	  nil
 	  t
 	  ((?\_ . "w")))); treat underscore as a word component
+  (setq comment-start dsl-comment-start)
 )
 
 

@@ -1,11 +1,18 @@
 #! python3
 
+import os
 import ply.yacc as yacc
 
 import project_parser_lexer
 from project_parser_lexer import tokens
 
-from model import Project, Package, Class, Subprogram, Procedure, Function, Parameter
+from model import Project, \
+    Package, \
+    Class, \
+    Operation, \
+    Parameter, \
+    Dependance, \
+    Field
 
 '''
 project                  : PROJECT IDENTIFIER output_directory package_list END PROJECT
@@ -39,7 +46,9 @@ def p_output_directory(p):
 
 def p_string_more_than_one(p):
     'string : string AMP STRING_VALUE'
-    p[0] = p[1] + p[2]
+    left = p[1].replace('"', '')
+    right = p[3].replace('"', '')
+    p[0] = '"' + left + right + '"'
 
 def p_string_one(p):
     'string : STRING_VALUE'
@@ -49,64 +58,82 @@ def p_package_list_empty(p):
     'package_list : '
     p[0] = []
 
-def p_package_list_full(p):
+def p_package_list_more(p):
     'package_list : package_list package_item'
     p[1].append(p[2])
     p[0] = p[1]
 
 def p_package_item(p):
-    'package_item : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE IDENTIFIER'
-    p[0] = Package(p[2], p[3])
+    'package_item : PACKAGE IDENTIFIER build_package dependance_list packageable_element_list END PACKAGE IDENTIFIER'
+    print("=" * 10 + " package_item rule")
+    p[3].dependance_list = p[4]
+    p[3].packageable_element_list = p[5]
+    p[0] = p[3]
+    p.parser.current_package = p[0]
+
+def p_build_package(p):
+    'build_package :'
+    print("=" * 10 + " build_package rule")
+    p[0] = Package(name = p[-1])
 
 def p_dependance_list_empty(p):
     'dependance_list : '
     p[0] = []
 
-def p_dependance_list_full(p):
+def p_dependance_list_more(p):
     'dependance_list : dependance_list dependance_item'
     p[1].append(p[2])
     p[0] = p[1]
 
 def p_dependance_item_with(p):
     'dependance_item : WITH IDENTIFIER'
-    p[0] = Dependance(p[2], p[3])
+    p[0] = Dependance(mode = p[1], imported_unit = p[2])
 
 def p_dependance_item_use(p):
     'dependance_item : USE IDENTIFIER'
-    p[0] = Dependance(p[2], p[3])
+    p[0] = Dependance(mode = p[1], imported_unit = p[2])
 
 def p_dependance_item_limited_with(p):
     'dependance_item : LIMITED WITH IDENTIFIER'
-    p[0] = Dependance(p[1] + p[2], p[3])
+    p[0] = Dependance(mode = p[1] + p[2], imported_unit = p[3])
 
 def p_packageable_element_list_empty(p):
     'packageable_element_list : '
     p[0] = []
 
-# def p_packageable_element_list_one_or_more(p):
-#     'packageable_element_list : packageable_element_list packageable_element_item'
-#     p[1].append(p[2])
-#     p[0] = p[1]
+def p_packageable_element_list_more(p):
+    'packageable_element_list : packageable_element_list packageable_element_item'
+    p[1].append(p[2])
+    p[0] = p[1]
 
-# def p_packageable_element_item(p):
-#     '''packageable_element_item : subprogram_item
-#                                 | value_object_item
-#     '''
-#     p[0] = p[1]
+def p_packageable_element_item(p):
+    '''packageable_element_item : subprogram_item
+                                | value_object_item
+    '''
+    p[0] = p[1]
 
-# def p_value_object_item(p):
-#     'value_object_item : value_object_begin value_object_content value_object_end'
-#     p[0] = Class(p[2])
+def p_value_object_item(p):
+    'value_object_item : value_object_begin value_object_content value_object_end'
+    p[0] = p[1]
+    print("new Class: " + str(p[0]))
 
-# def p_value_object_begin_abstract_inherit(p):
-#     'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
-#     is_abstract = true
-#     parent = 5
-#     name = 3
-#     the_class = Class(name = p[name], is_abstract = is_abstract, parent = p[parent])
+def p_value_object_begin_abstract_inherit(p):
+    'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
+    is_abstract = True
+    parent_name = p[5]
+    for element in p.parser.current_package.packageable_element_list:
+        if element.name == parent_name:
+            parent = element
 
-# def p_value_object_begin_abstract(p):
-#     'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER'
+
+    name = p[3]
+    p[0] = Class(name = name, is_abstract = is_abstract, parent = parent)
+
+def p_value_object_begin_abstract(p):
+    'value_object_begin : ABSTRACT VALUE_OBJECT IDENTIFIER'
+    is_abstract = True
+    name = p[3]
+    p[0] = Class(name = name, is_abstract = is_abstract)
 
 # def p_value_object_begin_inherit(p):
 #     'value_object_begin : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN'
@@ -114,20 +141,58 @@ def p_packageable_element_list_empty(p):
 # def p_value_object_begin_simple(p):
 #     'value_object_begin : VALUE_OBJECT IDENTIFIER'
 
-# def p_value_object_content(p):
+def p_value_object_content(p):
+    'value_object_content : dependance_list feature_list'
 #     'value_object_content : dependance_list initialization behavior_list'
+    p[-1].dependance_list = p[1]
 
-# def p_value_object_end(p):
-#     'value_object_end : END VALUE_OBJECT'
+def p_value_object_end(p):
+    'value_object_end : END VALUE_OBJECT IDENTIFIER'
+    name = p[3]
+    if name != p[-2].name:
+        print("WARNING closing name '%s' doesn't match opening name '%s'" % (p[3], p[-2].name))
 
-# def p_initialization(p):
-#     'initialization : INITIALIZE parameter_list contract_list implementation'
+def p_feature_list_none(p):
+    'feature_list :'
+    p[0] = []
+
+def p_feature_list_more(p):
+    'feature_list : feature_list feature_item'
+    print("READ FEATURE: " + str(p[2]))
+    print("IN " + str(p[-2].name))
+    if p[2].__class__.__name__ == "Field":
+        p[-2].field_list.append(p[2])
+
+def p_feature_item(p):
+    '''feature_item : field_item
+                    | operation_item'''
+    p[0] = p[1]
+
+def p_operation_item(p):
+    'operation_item : INITIALIZE'
+    print("read operation")
+
+def p_field_item(p):
+    'field_item : IDENTIFIER COLON IDENTIFIER'
+    print("read field %s : %s" % (p[1], p[3]))
+    p[0] = Field(name = p[1], of_type = p[3])
+
+# def p_initialization_none(p):
+#     'initialization :'
+
+# def p_initialization_item(p):
+#     'initialization : INITIALIZE'
+#     # 'initialization : INITIALIZE signature implementation'
+#     p[-1].append(Procedure(name="initialize"))
+
+# def p_signature(p):
+#     'signature : parameter_list'
 
 # def p_behavior_list_empty(p):
 #     'behavior_list : '
 #     p[0] = []
 
-# def p_behavior_list_one_or_more(p):
+# def p_behavior_list_more(p):
 #     'behavior_list : behavior_list behavior_item'
 #     p[0] = []
 
@@ -136,20 +201,20 @@ def p_packageable_element_list_empty(p):
 #     p[0] = Class(p[2])
 
 # def p_behavior_begin_init(p):
-#     'behavior_begin : INITIALIZE contract_list'
+#     'behavior_begin : INITIALIZE contract'
 
 # def p_behavior_begin_query(p):
-#     'behavior_begin : QUERY IDENTIFIER RETURN IDENTIFIER contract_list'
+#     'behavior_begin : QUERY IDENTIFIER RETURN IDENTIFIER contract'
 
 # def p_behavior_begin_command(p):
-#     'behavior_begin : COMMAND IDENTIFIER contract_list'
+#     'behavior_begin : COMMAND IDENTIFIER contract'
 
-# def p_contract_list_empty(p):
-#     'contract_list : '
+# def p_contract_empty(p):
+#     'contract : '
 #     p[0] = []
 
-# def p_contract_list_one_or_more(p):
-#     'contract_list : contract_list contract_item'
+# def p_contract_more(p):
+#     'contract : contract contract_item'
 #     p[0] = []
 
 # def p_contract_item(p):
@@ -184,12 +249,16 @@ def p_subprogram_item_4(p):
     returned = 4
     p[0] = Function(p[name], p[returned], [])
 
-def p_parameter_list_1(p):
+def p_parameter_list_empty(p):
+    'parameter_list :'
+    p[0] = []
+
+def p_parameter_list_one_or_more(p):
     'parameter_list : parameter_item'
     p[0] = []
 
-def p_parameter_list_2(p):
-    'parameter_list : parameter_list SEMICOLON parameter_item'
+def p_parameter_list_more(p):
+    'parameter_list : LPAREN parameter_list SEMICOLON parameter_item RPAREN'
     p[1].append(p[3])
     p[0] = p[1]
 
@@ -229,13 +298,16 @@ def p_error(p):
     print(message)
 
 parser = yacc.yacc()
+parser.current_package = None
 
 def test_grammar():
     data = open("input.dsl", "r").read()
 
     result = parser.parse(data)
     if result != None:
+        print(os.linesep + ("=" * 60) + os.linesep)
         print(result)
+        print("=" * 60)
 
 if __name__ == '__main__':
     test_grammar()

@@ -3,24 +3,14 @@ import os
 from indent import indent
 
 
-class Named_Element:
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        image = "<" + self.__class__.__name__ + "> '%s'" % (self.name)
-        return image
-
-
-class Project(Named_Element):
+class Project:
     def __init__(self, name, output_directory, package_list):
-        super().__init__(name)
+        self.name             = name
         self.output_directory = output_directory
         self.package_list     = package_list
 
     def __str__(self):
-        image = os.linesep + "========================================" + os.linesep
-        image += super().__str__() + os.linesep
+        image  = "<" + self.__class__.__name__ + "> '%s'" % (self.name) + os.linesep
         image += "in %s" % (self.output_directory) + os.linesep
         indent.incr()
         j = 1
@@ -33,8 +23,17 @@ class Project(Named_Element):
         return image
 
 
+class Named_Element:
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        image = "<" + self.__class__.__name__ + "> '%s'" % (self.name)
+        return image
+
+
 class Package(Named_Element):
-    def __init__(self, name, packageable_element_list):
+    def __init__(self, name, dependance_list = [], packageable_element_list = []):
         super().__init__(name)
         self.packageable_element_list = packageable_element_list
 
@@ -52,22 +51,65 @@ class Package(Named_Element):
 
 
 class Class(Named_Element):
-    def __init__(self, name, parent = None, is_abstract = False):
+    def __init__(self, name, parent = None, is_abstract = False,
+                 dependance_list = [], field_list = [], operation_list = []):
         super().__init__(name)
-        self.parent = parent
-        self.is_abstract = is_abstract
+        self.parent          = parent
+        self.is_abstract     = is_abstract
+        self.dependance_list = dependance_list,
+        self.operation_list  = operation_list
+        self.field_list      = field_list
+
+    def __field_list_image(self):
+        image = ""
+        indent.incr()
+        j = 1
+        for element in self.field_list:
+            if self.parent != None and element in self.parent.field_list:
+                pass
+            else:
+              image += indent.str() + str(element)
+              j += 1
+              if j <= len(self.field_list):
+                  image += os.linesep
+        indent.decr()
+        return image
+
+    def __operation_list_image(self):
+        image = ""
+        indent.incr()
+        j = 1
+        for element in self.operation_list:
+            image += indent.str() + str(element)
+            j += 1
+            if j <= len(self.operation_list):
+                image += os.linesep
+        indent.decr()
+        return image
 
     def __str__(self):
         image = super().__str__()
+
         if self.parent != None:
             image += " extends %s" % (self.parent)
+
         if self.is_abstract:
             image += " is abstract"
+
+        image += os.linesep
+
+        image += self.__field_list_image()
+        image += os.linesep
+        image += self.__operation_list_image()
+
         return image
 
 
-class Subprogram(Named_Element):
-    def __init__(self, name, parameter_list):
+class Operation(Named_Element):
+
+    '''define procedure or function'''
+
+    def __init__(self, name, is_query = False, parameter_list = []):
         super().__init__(name)
         self.parameter_list = parameter_list
 
@@ -86,14 +128,14 @@ class Subprogram(Named_Element):
         return image
 
 
-class Procedure(Subprogram):
-    def __init__(self, name, parameter_list):
-        super().__init__(name, parameter_list)
+# class Procedure(Subprogram):
+#     def __init__(self, name, parameter_list):
+#         super().__init__(name, parameter_list)
 
 
-class Function(Subprogram):
-    def __init__(self, name, returned_type, parameter_list):
-        super().__init__(name, parameter_list)
+# class Function(Subprogram):
+#     def __init__(self, name, returned_type, parameter_list):
+#         super().__init__(name, parameter_list)
 
 
 class Typed_Element(Named_Element):
@@ -104,41 +146,65 @@ class Typed_Element(Named_Element):
 
     def __str__(self):
         image = super().__str__() + " : %s" % (self.of_type)
-        if default != None:
+        if self.default != None:
             image += " := %s" % (self.default)
         return image
 
 
 class Parameter(Typed_Element):
-    pass
+
+    DIRECTION_IN     = "in"
+    DIRECTION_OUT    = "out"
+    DIRECTION_INOUT  = "inout"
+    DIRECTION_RETURN = "return"
+
+    DIRECTIONS = [DIRECTION_IN, DIRECTION_OUT, DIRECTION_INOUT, DIRECTION_RETURN]
+
+    def __init__(self, name, direction, of_type, default):
+        if not direction in Parameter.DIRECTIONS:
+            raise Exception("unknown parameter direction: " + mode)
+
+        super.__init__(name)
 
 
 class Field(Typed_Element):
-    pass
+    def __init__(self, name, of_type, default = None):
+        super().__init__(name, of_type, default)
+        self.of_type = of_type
+        self.default = default
+
+    def __str__(self):
+        image = super().__str__()
+        if self.default != None:
+            image += " := %s" % (self.default)
+        return image
 
 
 class Dependance:
 
-    mode_with = "with"
-    mode_use = "use"
-    mode_limited_with = "limitedwith"
+    MODE_WITH         = "with"
+    MODE_USE          = "use"
+    MODE_LIMITED_WITH = "limitedwith"
 
-    modes = [mode_with, mode_use, mode_limited_with]
+    MODES = [MODE_WITH, MODE_USE, MODE_LIMITED_WITH]
 
     def __init__(self, imported_unit, mode):
-        if not mode in modes:
+        if not mode in Dependance.MODES:
             raise Exception("unknown dependance mode: " + mode)
+
         self.imported_unit = imported_unit
         self.mode          = mode
 
-    def __string__(self):
+    def __str__(self):
         image = ""
 
-        if mode == mode_with:
-            image += "with"
-        elif mode == mode_use:
-            image += "use"
-        elif mode == mode_limited_with:
-            image += "limited with"
+        if self.mode == Dependance.MODE_WITH:
+            image += "with "
+        elif self.mode == Dependance.MODE_USE:
+            image += "use "
+        elif self.mode == Dependance.MODE_LIMITED_WITH:
+            image += "limited with "
+
+        image += self.imported_unit
 
         return image
