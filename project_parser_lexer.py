@@ -2,6 +2,8 @@ import ply.lex as lex
 
 reserved = {
     'abstract'         : 'ABSTRACT',
+    'and'              : 'AND',
+    'or'               : 'OR',
     'command'          : 'COMMAND',
     'end'              : 'END',
     'field'            : 'FIELD',
@@ -19,6 +21,7 @@ reserved = {
     'procedure'        : 'PROCEDURE',
     'project'          : 'PROJECT',
     'query'            : 'QUERY',
+    'return'           : 'RETURN',
     'subprogram'       : 'SUBPROGRAM',
     'use'              : 'USE',
     'value_object'     : 'VALUE_OBJECT',
@@ -36,6 +39,10 @@ tokens = [
     'IDENTIFIER',
     'COMMENT',
     'STRING_VALUE',
+    'INTEGER_VALUE',
+    'SUPERIOR',
+    'INFERIOR',
+    'EQUAL',
     'VALUE',
 ] + list(reserved.values())
 
@@ -65,6 +72,18 @@ def t_AMP(t):
     r'&'
     return t
 
+def t_SUPERIOR(t):
+    r'>'
+    return t
+
+def t_INFERIOR(t):
+    r'<'
+    return t
+
+def t_EQUAL(t):
+    r'='
+    return t
+
 def t_IDENTIFIER(t):
     r'[a-zA-Z][a-zA-Z_0-9.]*'
     t.type = reserved.get(t.value, 'IDENTIFIER')
@@ -76,6 +95,10 @@ def t_COMMENT(t):
 
 def t_STRING_VALUE(t):
     r'".*"'
+    return t
+
+def t_INTEGER_VALUE(t):
+    r'[0-9]*'
     return t
 
 def t_VALUE(t):

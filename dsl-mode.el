@@ -27,7 +27,7 @@
                        "end"
                        "command"
                        "implementation"
-                       "initialize"
+                       "initialization"
                        "is"
                        "package"
                        "post"

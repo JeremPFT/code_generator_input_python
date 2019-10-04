@@ -3,9 +3,6 @@ project code_generator_model
   output_directory "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/"
                    & "ada/code_generator_input/examples/model"
 
-  package truc
-  end package truc
-
   package model
 
     --------------------
@@ -23,13 +20,32 @@ project code_generator_model
       --  dependances are the first printed lines
       --  "use" implies ada "with" clause
 
-      owned_comments : comment_vector
+      owned_comment : comment [*] ordered
+      owned_element : element_vector
+      owner         : element_access
+      --
+      -- for each "<field_name> : <type_name>_vector", generate queries:
+      -- <field_name>_count,
+      -- <field_name>_<type_name> (index),
+      -- has_<field_name>,
+      -- add_<field_name> (object)
+
+      initialization
+      pre ( comment_count = 0 ) and ( owned_element_count = 0 )
+      post ( comment_count = 0 ) and ( owned_element_count = 0 )
+      --  implementation
+
+      query test_query return nothing
 
     end value_object element
 
-    abstract value_object named_element (element)
+    value_object comment ( element )
+      body : string
+      annoted_elements : element_vector
+    end value_object comment
+
+    abstract value_object named_element ( element )
       name : string
-      xxx : yyy
     end value_object named_element
 
 --jpi    abstract value_object element
