@@ -308,16 +308,37 @@ def p_operation_item(p):
     '''
     operation : operation_init parameter_list operation_return
     '''
-    p[0] = p[1]
-    return_type = p[3]
-    if return_type != None:
-        p[0].add_parameter(return_type)
+    operation     = p[1]
+    parameters    = p[2]
+    returned_type = p[3]
+
+    for parameter in parameters:
+        operation.add_parameter(parameter)
+
+    if returned_type != None:
+        operation.add_parameter(returned_type)
+
+    p[0] = operation
 
 def p_operation_init(p):
     '''
     operation_init : OPERATION IDENTIFIER
     '''
     p[0] = Operation(name = p[2])
+
+def p_operation_return_none(p):
+    '''
+    operation_return :
+    '''
+    p[0] = None
+
+def p_operation_return_one(p):
+    '''
+    operation_return : RETURN IDENTIFIER
+    '''
+    p[0] = Parameter(name      = "result",
+                     of_type   = p[2],
+                     direction = Parameter.DIRECTION_RETURN)
 
 def p_parameter_list(p):
     '''
@@ -329,7 +350,7 @@ def p_parameter_list_one(p):
     '''
     parameter_list : LPAREN parameter_item RPAREN
     '''
-    p[0] = p[2]
+    p[0] = [p[2]]
 
 def p_parameter_list_more(p):
     '''
