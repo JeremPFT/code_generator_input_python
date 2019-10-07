@@ -3,22 +3,21 @@ import ply.lex as lex
 reserved = {
     'abstract'         : 'ABSTRACT',
     'and'              : 'AND',
-    'or'               : 'OR',
     'command'          : 'COMMAND',
     'end'              : 'END',
     'field'            : 'FIELD',
-    'function'         : 'FUNCTION',
     'implementation'   : 'IMPLEMENTATION',
+    'inout'            : 'INOUT',
     'in'               : 'IN',
-    'initialize'       : 'INITIALIZE',
     'is'               : 'IS',
     'limited'          : 'LIMITED',
+    'operation'        : 'OPERATION',
+    'or'               : 'OR',
     'out'              : 'OUT',
     'output_directory' : 'OUTPUT_DIRECTORY',
     'package'          : 'PACKAGE',
     'post'             : 'POST',
     'pre'              : 'PRE',
-    'procedure'        : 'PROCEDURE',
     'project'          : 'PROJECT',
     'query'            : 'QUERY',
     'return'           : 'RETURN',
@@ -98,7 +97,7 @@ def t_STRING_VALUE(t):
     return t
 
 def t_INTEGER_VALUE(t):
-    r'[0-9]*'
+    r'[0-9]+'
     return t
 
 def t_VALUE(t):
@@ -119,7 +118,7 @@ def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
     return (token.lexpos - line_start) + 1
 
-lexer = lex.lex(debug = 0)
+lexer = lex.lex(debug = False)
 
 def test_lexer():
     data = '''

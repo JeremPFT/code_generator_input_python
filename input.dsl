@@ -20,32 +20,40 @@ project code_generator_model
       --  dependances are the first printed lines
       --  "use" implies ada "with" clause
 
-      owned_comment : comment [*] ordered
-      owned_element : element_vector
-      owner         : element_access
+      operation essai(a1 : in x1; a2 : in x2);
+
+      operation initialize
+                (self  : out object_t;
+                 owner : in object_t);
+
+      --  owned_comment : comment [*] ordered
+      owned_comment : comment_vector;
+      owned_element : element_vector;
+      owner         : element_access;
       --
       -- for each "<field_name> : <type_name>_vector", generate queries:
-      -- <field_name>_count,
-      -- <field_name>_<type_name> (index),
-      -- has_<field_name>,
-      -- add_<field_name> (object)
+      -- <field_name>_count: return vector length,
+      -- get_<field_name> (index): return item by index,
+      -- has_<field_name>: return True if the vector contains the item,
+      -- add_<field_name> (object): add the item at the end of the vector
 
-      initialization
-      pre ( comment_count = 0 ) and ( owned_element_count = 0 )
-      post ( comment_count = 0 ) and ( owned_element_count = 0 )
+      operation has_owner (self : in object_t) return boolean;
+      operation get_owner (self : in object_t) return boolean;
+
+      --  initialization
+      --  pre ( comment_count = 0 ) and ( owned_element_count = 0 )
+      --  post ( comment_count = 0 ) and ( owned_element_count = 0 )
       --  implementation
-
-      query test_query return nothing
 
     end value_object element
 
     value_object comment ( element )
-      body : string
-      annoted_elements : element_vector
+      body : string;
+      annoted_element : element_vector;
     end value_object comment
 
     abstract value_object named_element ( element )
-      name : string
+      name : string;
     end value_object named_element
 
 --jpi    abstract value_object element

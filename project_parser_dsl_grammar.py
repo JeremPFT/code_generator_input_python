@@ -61,8 +61,11 @@ def p_project_content(p):
     '''
     project_content : output_directory package_list
     '''
-    p[-1].output_directory = p[1]
-    p[-1].package_list     = p[2]
+    p[-1].set_output_directory(p[1])
+    for package_item in p[2]:
+        p[-1].add_package(package_item)
+    # p[-1].output_directory = p[1]
+    # p[-1].package_list     = p[2]
 
 def p_project_close_named(p):
     '''
@@ -179,7 +182,7 @@ def p_packageable_element_list_more(p):
     p[0] = p[1]
 
 def p_packageable_element_item(p):
-    '''packageable_element : subprogram
+    '''packageable_element : operation
                            | value_object
     '''
     p[0] = p[1]
@@ -257,9 +260,9 @@ def p_value_object_content(p):
 
     for feature in p[2]:
         if feature.__class__.__name__ == Property.__name__:
-            p[-1].property_list.append(feature)
+            p[-1].add_property(feature)
         elif feature.__class__.__name__ == Operation.__name__:
-            p[-1].operation_list.append(feature)
+            p[-1].add_operation(feature)
 
 def p_value_object_close_named(p):
     '''
@@ -291,68 +294,90 @@ def p_feature_list_more(p):
     p[0] = p[1]
 
 def p_feature_item(p):
-    '''feature : property
-               | operation'''
+    '''
+    feature : property SEMICOLON
+            | operation SEMICOLON
+    '''
     p[0] = p[1]
 
 #
 # - operation
 #
 
-def p_operation_item_initialization(p):
+def p_operation_item(p):
     '''
-    operation : INITIALIZATION contract implementation
+    operation : operation_init parameter_list operation_return
     '''
-    p[0] = Operation(name = p[1], is_query = True)
+    p[0] = p[1]
+    return_type = p[3]
+    if return_type != None:
+        p[0].add_parameter(return_type)
 
-def p_operation_item_query(p):
+def p_operation_init(p):
     '''
-    operation : QUERY IDENTIFIER RETURN IDENTIFIER
+    operation_init : OPERATION IDENTIFIER
     '''
-    p[0] = Operation(name = p[1], is_query = True)
+    p[0] = Operation(name = p[2])
 
-#
-# - contract
-#
-
-def p_contract_item(p):
+def p_parameter_list(p):
     '''
-    contract : precondition_list postcondition_list
-    '''
-
-def p_precondition_list_empty(p):
-    '''
-    precondition_list :
+    parameter_list :
     '''
     p[0] = []
 
-def p_precondition_list_more(p):
+def p_parameter_list_one(p):
     '''
-    precondition_list : PRE precondition_list_content
+    parameter_list : LPAREN parameter_item RPAREN
+    '''
+    p[0] = p[2]
+
+def p_parameter_list_more(p):
+    '''
+    parameter_list : LPAREN parameter_item_list parameter_item RPAREN
+    '''
+    p[0] = p[2]
+    p[0].append(p[3])
+
+def p_parameter_item_list_one(p):
+    '''
+    parameter_item_list : parameter_item SEMICOLON
+    '''
+    p[0] = [p[1]]
+
+def p_parameter_item_list_more(p):
+    '''
+    parameter_item_list : parameter_item_list parameter_item
+    '''
+    p[0] = p[1]
+    p[0].append(p[2])
+
+def p_parameter_item(p):
+    '''
+    parameter_item : IDENTIFIER COLON direction IDENTIFIER
+    '''
+    p[0] = Parameter(name = p[1], direction = p[3], of_type = p[4])
+
+def p_direction(p):
+    '''
+    direction : INOUT
+              | OUT
+              | IN
     '''
     p[0] = p[1]
 
-def p_precondition_list_content(p):
+def p_operation_return_none(p):
     '''
-    precondition_list_content : precondition_list precondition_item
+    operation_return :
     '''
-    p[0] = []
+    p[0] = None
 
-def p_condition_list_one(p):
+def p_operation_return_one(p):
     '''
-    condition_list : condition_item
+    operation_return : RETURN IDENTIFIER
     '''
-
-def p_condition_list_more(p):
-    '''
-    condition_list : condition_list AND condition_item
-                   | condition_list OR condition_item
-    '''
-
-def p_condition_item(p):
-    '''
-    condition_item : identifier CMP_OPERATOR integer_value
-    '''
+    p[0] = Parameter(name      = "result",
+                     of_type   = p[2],
+                     direction = Parameter.DIRECTION_RETURN)
 
 #
 # - implementation
@@ -369,85 +394,9 @@ def p_property_item(p):
     '''
     p[0] = Property(name = p[1], of_type = p[3])
 
-def p_subprogram_with_params(p):
-    '''
-    subprogram : PROCEDURE IDENTIFIER LPAREN parameter parameter_list RPAREN
-    '''
-    p[5].append(p[4])
-    p[0] = Procedure(p[2], p[5])
-
-def p_subprogram_no_param(p):
-    '''
-    subprogram : PROCEDURE IDENTIFIER
-    '''
-    p[0] = Procedure(p[2], [])
-
-def p_subprogram_3(p):
-    '''
-    subprogram : FUNCTION IDENTIFIER LPAREN parameter parameter_list RPAREN COLON returned_type
-    '''
-    name     = 2
-    params   = 5
-    returned = 8
-    p[params].append(p[params - 1])
-    p[0] = Function(p[name], p[returned], p[params])
-
-def p_subprogram_4(p):
-    '''
-    subprogram : FUNCTION IDENTIFIER COLON returned_type
-    '''
-    name     = 2
-    returned = 4
-    p[0] = Function(p[name], p[returned], [])
-
-def p_parameter_list_empty(p):
-    '''
-    parameter_list :
-    '''
-    p[0] = []
-
-def p_parameter_list_one(p):
-    '''
-    parameter_list : parameter
-    '''
-    p[0] = []
-
-def p_parameter_list_more(p):
-    '''
-    parameter_list : LPAREN parameter_list SEMICOLON parameter RPAREN
-    '''
-    p[1].append(p[3])
-    p[0] = p[1]
-
-def p_parameter_init(p):
-    '''
-    parameter : IDENTIFIER COLON parameter_mode IDENTIFIER COLONEQ VALUE
-    '''
-    p[0] = Parameter(p[1], p[3])
-
-def p_parameter(p):
-    '''
-    parameter : IDENTIFIER COLON parameter_mode IDENTIFIER
-    '''
-    p[0] = Parameter(p[1], p[3])
-
-def p_parameter_mode_inout(p):
-    '''
-    parameter_mode : IN OUT
-    '''
-    p[0] = Parameter_Mode("in out")
-    p[0] = p_mode_in_out
-
-def p_parameter_mode_in_or_out(p):
-    '''parameter_mode : IN
-                      | OUT'''
-    p[0] = Parameter_Mode(p[1])
-
-def p_returned_type(p):
-    '''
-    returned_type : IDENTIFIER
-    '''
-    p[0] = p[1]
+#
+# - others
+#
 
 def p_output_directory(p):
     '''
@@ -482,7 +431,7 @@ def p_error(p):
     message += " " + str(p)
     print(message)
 
-parser = yacc.yacc(debug = True)
+parser = yacc.yacc(debug = False)
 parser.current_project   = None
 parser.current_package   = None
 parser.current_class     = None
@@ -491,7 +440,7 @@ parser.current_procedure = None
 def test_grammar():
     data = open("input.dsl", "r").read()
 
-    result = parser.parse(data)
+    result = parser.parse(data, debug = False)
     if result != None:
         print(os.linesep + ("=" * 60) + os.linesep)
         print(result)
