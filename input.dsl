@@ -20,13 +20,11 @@ project code_generator_model
       --  dependances are the first printed lines
       --  "use" implies ada "with" clause
 
-      operation essai(a1 : in x1; a2 : in x2);
-
       operation initialize
                 (self  : out object_t;
                  owner : in object_t);
 
-      --  owned_comment : comment [*] ordered
+      --  owned_comment : comment ([*], ordered)
       owned_comment : comment_vector;
       owned_element : element_vector;
       owner         : element_access;
