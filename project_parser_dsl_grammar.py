@@ -386,24 +386,37 @@ def p_direction(p):
     '''
     p[0] = p[1]
 
-def p_operation_return_none(p):
-    '''
-    operation_return :
-    '''
-    p[0] = None
-
-def p_operation_return_one(p):
-    '''
-    operation_return : RETURN IDENTIFIER
-    '''
-    p[0] = Parameter(name      = "result",
-                     of_type   = p[2],
-                     direction = Parameter.DIRECTION_RETURN)
-
 #
 # - implementation
 #
 
+def p_implementation_from_file(p):
+    '''
+    implementation : IMPLEMENTATION string SEMICOLON
+    '''
+
+    implementation_file = open(p[2])
+
+    # TODO following is pseudo code
+
+    declaration = substring(path = implementation_file,
+                            from = position_of ("[^a-z_]is[^a-z_]"),
+                            end  = position_of ("[^a-z_]begin[^a-z_]"))
+
+    body = substring(path = implementation_file,
+                     from = position_of ("[^a-z_]begin[^a-z_]"),
+                     end  = last_position_of ("[^a-z_]end[^a-z_]"))
+
+def p_implementation(p):
+    '''
+    implementation : declaration_item body_item
+    '''
+    pass
+
+def p_declaration(p):
+    '''
+    declaration_item : DECLARATION declaration_content
+    '''
 
 #
 # - property
