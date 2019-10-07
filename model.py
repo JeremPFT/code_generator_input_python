@@ -173,8 +173,9 @@ class Class(Namespace):
 
 
 class Operation(Named_Element):
-
-    '''define procedure or function'''
+    '''
+    define procedure or function
+    '''
 
     def __init__(self, name, is_query = False):
         super().__init__(name)
@@ -318,6 +319,9 @@ class Operation(Named_Element):
 
 
 class Typed_Element(Named_Element):
+    '''
+    Element with a type (extended by Parameter and Property)
+    '''
     def __init__(self, name, of_type, default = None):
         super().__init__(name)
         self.of_type = of_type
@@ -330,6 +334,9 @@ class Typed_Element(Named_Element):
         return image
 
 class Parameter(Typed_Element):
+    '''
+    Parameter of an operation
+    '''
 
     DIRECTION_IN     = "in"
     DIRECTION_OUT    = "out"
