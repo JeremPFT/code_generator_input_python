@@ -1,11 +1,9 @@
 import os
 
-from indent import indent
-
-
-def debug(str):
-    print(str)
-
+from code_generator_utils import (
+    indent,
+    debug,
+)
 
 class Project:
     def __init__(self, name):

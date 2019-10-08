@@ -17,22 +17,67 @@ from model import (
 )
 
 '''
-project                  : PROJECT IDENTIFIER output_directory package_list END PROJECT
-output_directory         : string
-string                   : STRING_VALUE | string AMP STRING_VALUE
-package_list             : <empty> | package_list package_item
-package_item              : PACKAGE IDENTIFIER dependance_list packageable_element_list END PACKAGE
-dependance_list          : <empty> | dependance_list dependance_item
-dependance_item           : WITH IDENTIFIER
-packageable_element_list : <empty> | packageable_element_list packageable_element_item
-packageable_element_item  : type_item | subprogram_item
-subprogram_item           : SUBPROGRAM IDENTIFIER LPAREN parameter_item parameter_list RPAREN COMMA returned_type
-parameter_list           : <empty> | parameter_list SEMICOLON parameter_item
-parameter_item            : IDENTIFIER COLON parameter_mode IDENTIFIER COLONEQ VALUE
-                         | IDENTIFIER COLON parameter_mode IDENTIFIER
-param_mode               : IN OUT | IN | OUT
-type_item                 : class_item | enum_item
-visibility               : PRIVATE | PROTECTED | PUBLIC
+(fset 'copy-grammar-rule
+[?\C-s ?: ?\C-j ?  ?\' ?\' ?\' return ?\M-f ?\M-b ?\C-  ?\C-s ?\' ?\' ?\' ?\C-a ?\M-w ?\C-x ?o ?\C-y ?\C-x ?o])
+'''
+
+'''
+project_item                       : project_init project_content project_close
+project_init                       : PROJECT IDENTIFIER
+project_content                    : output_directory package_list
+project_close                      : END PROJECT IDENTIFIER SEMICOLON
+project_close                      : END PROJECT SEMICOLON
+package_list                       :
+package_list                       : package_list package
+package                            : package_init package_content package_close
+package_init                       : PACKAGE IDENTIFIER
+package_content                    : dependance_list packageable_element_list
+package_close                      : END PACKAGE IDENTIFIER SEMICOLON
+package_close                      : END PACKAGE SEMICOLON
+dependance_list                    :
+dependance_list                    : dependance_list dependance
+dependance                         : WITH IDENTIFIER
+dependance                         : USE IDENTIFIER
+dependance                         : LIMITED WITH IDENTIFIER
+packageable_element_list           :
+packageable_element_list           : packageable_element_list packageable_element
+packageable_element                : operation
+                                   | type_item
+type_item                          : exceptions                 // TODO
+                                   | value_object
+value_object                       : value_object_init value_object_content value_object_close
+value_object_init                  : value_object_init_abstract_inherit
+                                   | value_object_init_abstract
+                                   | value_object_init_inherit
+                                   | value_object_init_simple
+value_object_init_abstract_inherit : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
+value_object_init_abstract         : ABSTRACT VALUE_OBJECT IDENTIFIER
+value_object_init_inherit          : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
+value_object_init_simple           : VALUE_OBJECT IDENTIFIER
+value_object_content               : dependance_list feature_list
+value_object_close                 : END VALUE_OBJECT IDENTIFIER SEMICOLON
+value_object_close                 : END VALUE_OBJECT SEMICOLON
+feature_list                       :
+feature_list                       : feature_list feature
+feature                            : property SEMICOLON
+                                   | operation SEMICOLON
+operation                          : operation_init parameter_list operation_return
+operation_init                     : OPERATION IDENTIFIER
+operation_return                   :
+operation_return                   : RETURN IDENTIFIER
+parameter_list                     :
+parameter_list                     : LPAREN parameter_item RPAREN
+parameter_list                     : LPAREN parameter_item_list parameter_item RPAREN
+parameter_item_list                : parameter_item SEMICOLON
+parameter_item_list                : parameter_item_list parameter_item
+parameter_item                     : IDENTIFIER COLON direction IDENTIFIER
+direction                          : INOUT
+                                   | OUT
+                                   | IN
+property                           : IDENTIFIER COLON IDENTIFIER
+output_directory                   : OUTPUT_DIRECTORY string
+string                             : string AMP STRING_VALUE
+string                             : STRING_VALUE
 '''
 
 def check_closing_name(p, class_name):
@@ -69,13 +114,13 @@ def p_project_content(p):
 
 def p_project_close_named(p):
     '''
-    project_close : END PROJECT IDENTIFIER
+    project_close : END PROJECT IDENTIFIER SEMICOLON
     '''
     check_closing_name(p, "project")
 
 def p_project_close(p):
     '''
-    project_close : END PROJECT
+    project_close : END PROJECT SEMICOLON
     '''
     pass
 
@@ -119,13 +164,13 @@ def p_package_content(p):
 
 def p_package_close_named(p):
     '''
-    package_close : END PACKAGE IDENTIFIER
+    package_close : END PACKAGE IDENTIFIER SEMICOLON
     '''
     check_closing_name(p, "package")
 
 def p_package_close(p):
     '''
-    package_close : END PACKAGE
+    package_close : END PACKAGE SEMICOLON
     '''
     pass
 
@@ -266,13 +311,13 @@ def p_value_object_content(p):
 
 def p_value_object_close_named(p):
     '''
-    value_object_close : END VALUE_OBJECT IDENTIFIER
+    value_object_close : END VALUE_OBJECT IDENTIFIER SEMICOLON
     '''
     check_closing_name(p, "value_object")
 
 def p_value_object_close(p):
     '''
-    value_object_close : END VALUE_OBJECT
+    value_object_close : END VALUE_OBJECT SEMICOLON
     '''
     pass
 
@@ -390,33 +435,33 @@ def p_direction(p):
 # - implementation
 #
 
-def p_implementation_from_file(p):
-    '''
-    implementation : IMPLEMENTATION string SEMICOLON
-    '''
-
-    implementation_file = open(p[2])
-
-    # TODO following is pseudo code
-
-    declaration = substring(path = implementation_file,
-                            from = position_of ("[^a-z_]is[^a-z_]"),
-                            end  = position_of ("[^a-z_]begin[^a-z_]"))
-
-    body = substring(path = implementation_file,
-                     from = position_of ("[^a-z_]begin[^a-z_]"),
-                     end  = last_position_of ("[^a-z_]end[^a-z_]"))
-
-def p_implementation(p):
-    '''
-    implementation : declaration_item body_item
-    '''
-    pass
-
-def p_declaration(p):
-    '''
-    declaration_item : DECLARATION declaration_content
-    '''
+# pseudocode def p_implementation_from_file(p):
+# pseudocode     '''
+# pseudocode     implementation : IMPLEMENTATION string SEMICOLON
+# pseudocode     '''
+# pseudocode
+# pseudocode     implementation_file = open(p[2])
+# pseudocode
+# pseudocode     # TODO following is pseudo code
+# pseudocode
+# pseudocode     declaration = substring(path = implementation_file,
+# pseudocode                             from = position_of ("[^a-z_]is[^a-z_]"),
+# pseudocode                             end  = position_of ("[^a-z_]begin[^a-z_]"))
+# pseudocode
+# pseudocode     body = substring(path = implementation_file,
+# pseudocode                      from = position_of ("[^a-z_]begin[^a-z_]"),
+# pseudocode                      end  = last_position_of ("[^a-z_]end[^a-z_]"))
+# pseudocode
+# pseudocode def p_implementation(p):
+# pseudocode     '''
+# pseudocode     implementation : declaration_item body_item
+# pseudocode     '''
+# pseudocode     pass
+# pseudocode
+# pseudocode def p_declaration(p):
+# pseudocode     '''
+# pseudocode     declaration_item : DECLARATION declaration_content
+# pseudocode     '''
 
 #
 # - property

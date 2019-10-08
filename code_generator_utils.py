@@ -1,3 +1,7 @@
+def debug(str):
+    print(str)
+
+
 class indent:
     shift = 2
     value = 0

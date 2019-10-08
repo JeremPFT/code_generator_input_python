@@ -5,6 +5,7 @@ reserved = {
     'and'              : 'AND',
     'command'          : 'COMMAND',
     'end'              : 'END',
+    'exceptions'       : 'EXCEPTIONS',
     'field'            : 'FIELD',
     'implementation'   : 'IMPLEMENTATION',
     'inout'            : 'INOUT',

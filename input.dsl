@@ -4,6 +4,25 @@ project code_generator_model
                    & "ada/code_generator_input/examples/model"
 
   package model
+  --
+  --  generate the following declaration for each root package:
+  --
+  --  type String_Access_T is access all String;
+  --
+  --  function "+" (Image : in String) return String_Access_T
+  --    is (new String'(Image));
+  --
+  --  package Dbg renames Ada.Text_IO;
+  --  package T_IO renames Ada.Text_IO;
+  --  package Latin_1 renames Ada.Characters.Latin_1;
+
+    exceptions
+    --
+    --  on line for each locally defined exception.
+    --
+    --  what about langage which can't create exception types ?
+      out_of_bound
+    end exceptions;
 
     --------------------
     --  element
@@ -21,8 +40,12 @@ project code_generator_model
       --  "use" implies ada "with" clause
 
       operation initialize
-                (self  : out object_t;
-                 owner : in object_t);
+                (owner : in element);
+      --
+      --  automatically add a first parameter "self : out element"
+      --
+      --  in ada, if a parameter type is the defined type, replace it with
+      --  "object_t" or "access_t"
 
       --  owned_comment : comment ([*], ordered)
       owned_comment : comment_vector;
@@ -43,23 +66,30 @@ project code_generator_model
       --  post ( comment_count = 0 ) and ( owned_element_count = 0 )
       --  implementation
 
-    end value_object element
+    end value_object element;
 
     value_object comment ( element )
       body : string;
       annoted_element : element_vector;
-    end value_object comment
+
+      operation initialize
+                (body : in string);
+
+      operation create
+                (body : in string);
+
+    end value_object comment;
 
     abstract value_object named_element ( element )
       name : string;
-    end value_object named_element
+    end value_object named_element;
 
 --jpi    abstract value_object element
 --jpi
 --jpi      initialize
 --jpi      ;; pre "comment_count = 0 and then owned_element_count = 0"
 --jpi      ;; post "comment_count = 0 and then owned_element_count = 0"
---jpi      ;; implementation "null;" end implementation
+--jpi      ;; implementation "null;" end implementation;
 --jpi      --
 --jpi      --  specific subprogram to initialize an instance
 --jpi      --  no parameter
@@ -78,30 +108,30 @@ project code_generator_model
 --jpi      owner : access class_t := null;
 --jpi
 --jpi      query has_owner return boolean
---jpi      implementation "return self.owner /= null;" end implementation
+--jpi      implementation "return self.owner /= null;" end implementation;
 --jpi
 --jpi      query get_owner return not null access constant object_t'class
 --jpi      pre => self.has_owner
---jpi      implementation "return self.owner;" end implementation
+--jpi      implementation "return self.owner;" end implementation;
 --jpi
 --jpi      query is_owned_by ( object : not null access constant object_t'class )
 --jpi      implementation
 --jpi      "obj_access : constant access constant object_t'class;"
 --jpi      "return self.owner = object;"
---jpi      end implementation
+--jpi      end implementation;
 --jpi      --
 --jpi      --  should be separate
 --jpi      --  implementation separate
 --jpi      --  separate close the implementation section
---jpi      --  implementation .. end implementation is implementation_inline
+--jpi      --  implementation .. end implementation is implementation_inline;
 --jpi      --  implementation separate is implementation_separate
 --jpi
 --jpi      query must_be_owned return boolean
---jpi      implementation "return true;" end implementation
+--jpi      implementation "return true;" end implementation;
 --jpi
 --jpi      command command_for_test
 --jpi
---jpi    end value_object element
+--jpi    end value_object element;
 
     --------------------
     --  comment
@@ -117,13 +147,13 @@ project code_generator_model
    --    Suffix : in     String := "")
    --   pre => Text /= ""
    --   post => pre
-   --   implementation: "null;" end implementation
+   --   implementation: "null;" end implementation;
    --   --
    --   --  see if a Create can be created automatically (the object is not abstract)
 
-   -- end value_object comment
+   -- end value_object comment;
 
-  end package model
+  end package model;
 
 --  end project code_generator_modelx
 --  end project code_generator_model
