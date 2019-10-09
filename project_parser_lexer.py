@@ -129,6 +129,8 @@ output_directory "c:\"
 end_project
     '''
 
+    data = open("input.dsl", "r").read()
+
     lexer.input(data)
 
     token = lexer.token()
