@@ -3,10 +3,10 @@
 import os
 import ply.yacc as yacc
 
-import project_parser_lexer
-from project_parser_lexer import tokens
+import src.project_parser_lexer
+from src.project_parser_lexer import tokens
 
-from model import (
+from src.model import (
     Class,
     Dependance,
     Property,
@@ -43,7 +43,7 @@ packageable_element_list           :
 packageable_element_list           : packageable_element_list packageable_element
 packageable_element                : operation
                                    | type_item
-type_item                          : exceptions                 // TODO
+type_item                          : exception_block                 // TODO
                                    | value_object
 value_object                       : value_object_init value_object_content value_object_close
 value_object_init                  : value_object_init_abstract_inherit
@@ -227,12 +227,43 @@ def p_packageable_element_list_more(p):
     p[0] = p[1]
 
 def p_packageable_element_item(p):
-    '''packageable_element : operation
-                           | value_object
+    '''
+    packageable_element : operation
+                        | type_item
     '''
     p[0] = p[1]
 
     p.parser.current_package.element_list.append(p[0])
+
+def p_type_item(p):
+    '''
+    type_item : value_object
+              | exception_block
+    '''
+
+def p_exception_block(p):
+    '''
+    exception_block : EXCEPTIONS exception_list exception_item END EXCEPTIONS SEMICOLON
+    '''
+
+def p_exception_list_empty(p):
+    '''
+    exception_list :
+    '''
+    p[0] = []
+
+def p_exception_list_more(p):
+    '''
+    exception_list : exception_list exception_item
+    '''
+    p[1].append(p[2])
+    p[0] = [1]
+
+def p_exception_item(p):
+    '''
+    exception_item : IDENTIFIER
+    '''
+    p[0] = p[1]
 
 #
 # - value_object
@@ -516,9 +547,7 @@ parser.current_package   = None
 parser.current_class     = None
 parser.current_procedure = None
 
-def test_grammar():
-    data = open("input.dsl", "r").read()
-
+def test_grammar(data):
     result = parser.parse(data, debug = False)
     if result != None:
         print(os.linesep + ("=" * 60) + os.linesep)

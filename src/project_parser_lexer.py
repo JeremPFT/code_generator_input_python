@@ -121,16 +121,7 @@ def find_column(input, token):
 
 lexer = lex.lex(debug = False)
 
-def test_lexer():
-    data = '''
-project project_name
-output_directory "c:\"
--- a basic example to test the parser
-end_project
-    '''
-
-    data = open("input.dsl", "r").read()
-
+def test_lexer(data):
     lexer.input(data)
 
     token = lexer.token()

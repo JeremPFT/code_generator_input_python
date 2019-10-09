@@ -16,13 +16,13 @@ project code_generator_model
   --  package T_IO renames Ada.Text_IO;
   --  package Latin_1 renames Ada.Characters.Latin_1;
 
-    exceptions
-    --
-    --  on line for each locally defined exception.
-    --
-    --  what about langage which can't create exception types ?
-      out_of_bound
-    end exceptions;
+    --  exceptions
+    --  --
+    --  --  on line for each locally defined exception.
+    --  --
+    --  --  what about langage which can't create exception types ?
+    --    out_of_bound
+    --  end exceptions;
 
     --------------------
     --  element
@@ -157,4 +157,4 @@ project code_generator_model
 
 --  end project code_generator_modelx
 --  end project code_generator_model
-end project
+end project;
