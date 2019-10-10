@@ -1,7 +1,9 @@
 project code_generator_model
 
   output_directory "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/"
-                   & "ada/code_generator_input/examples/model"
+                   & "ada/code_generator_py/output";
+
+  type static_library;
 
   package model
   --

@@ -3,18 +3,12 @@
 import os
 import ply.yacc as yacc
 
-import src.project_parser_lexer
-from src.project_parser_lexer import tokens
+# import src.lexer
+from src.lexer import tokens
 
-from src.model import (
-    Class,
-    Dependance,
-    Property,
-    Operation,
-    Package,
-    Parameter,
-    Project,
-)
+from src.uml_model import *
+
+from src.utils import dbg
 
 '''
 (fset 'copy-grammar-rule
@@ -24,7 +18,7 @@ from src.model import (
 '''
 project_item                       : project_init project_content project_close
 project_init                       : PROJECT IDENTIFIER
-project_content                    : output_directory package_list
+project_content                    : output_directory project_type package_list
 project_close                      : END PROJECT IDENTIFIER SEMICOLON
 project_close                      : END PROJECT SEMICOLON
 package_list                       :
@@ -75,6 +69,7 @@ direction                          : INOUT
                                    | OUT
                                    | IN
 property                           : IDENTIFIER COLON IDENTIFIER
+project_type                       : TYPE IDENTIFIER SEMICOLON
 output_directory                   : OUTPUT_DIRECTORY string
 string                             : string AMP STRING_VALUE
 string                             : STRING_VALUE
@@ -104,13 +99,13 @@ def p_project_init(p):
 
 def p_project_content(p):
     '''
-    project_content : output_directory package_list
+    project_content : output_directory project_type package_list
     '''
     p[-1].set_output_directory(p[1])
-    for package_item in p[2]:
+    p[-1].set_type(p[2])
+
+    for package_item in p[3]:
         p[-1].add_package(package_item)
-    # p[-1].output_directory = p[1]
-    # p[-1].package_list     = p[2]
 
 def p_project_close_named(p):
     '''
@@ -160,7 +155,7 @@ def p_package_content(p):
     package_content : dependance_list packageable_element_list
     '''
     p[-1].dependance_list          = p[1]
-    # p[-1].packageable_element_list = p[2]
+    p[-1].packageable_element_list = p[2]
 
 def p_package_close_named(p):
     '''
@@ -233,13 +228,14 @@ def p_packageable_element_item(p):
     '''
     p[0] = p[1]
 
-    p.parser.current_package.element_list.append(p[0])
+    p.parser.current_package.add_owned_member(p[0])
 
 def p_type_item(p):
     '''
     type_item : value_object
               | exception_block
     '''
+    p[0] = p[1]
 
 def p_exception_block(p):
     '''
@@ -508,9 +504,22 @@ def p_property_item(p):
 # - others
 #
 
+def p_project_type(p):
+    '''
+    project_type : TYPE IDENTIFIER SEMICOLON
+    '''
+    prj_type = p[2]
+
+    if not prj_type in Project.TYPES:
+        print("ERROR: project type '%s' undefined" % prj_type)
+        raise SyntaxError
+
+    p[0] = p[2]
+
+
 def p_output_directory(p):
     '''
-    output_directory : OUTPUT_DIRECTORY string
+    output_directory : OUTPUT_DIRECTORY string SEMICOLON
     '''
     p[0] = p[2]
 
@@ -549,10 +558,12 @@ parser.current_procedure = None
 
 def test_grammar(data):
     result = parser.parse(data, debug = False)
-    if result != None:
-        print(os.linesep + ("=" * 60) + os.linesep)
-        print(result)
-        print(os.linesep + "=" * 60)
+    print("return object " + str(type(result)))
+    return result
 
 if __name__ == '__main__':
-    test_grammar()
+    prj = test_grammar()
+    if prj != None:
+        print(os.linesep + ("=" * 60) + os.linesep)
+        print(prj)
+        print(os.linesep + "=" * 60)

@@ -26,6 +26,7 @@ reserved = {
     'use'              : 'USE',
     'value_object'     : 'VALUE_OBJECT',
     'vector'           : 'VECTOR',
+    'type'             : 'TYPE',
     'with'             : 'WITH',
 }
 
