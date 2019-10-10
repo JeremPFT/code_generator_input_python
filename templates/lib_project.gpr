@@ -1,0 +1,3 @@
+project {{ project_name }} is
+
+end {{ project_name }};
