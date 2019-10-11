@@ -3,6 +3,9 @@ class Template_Engine():
     VARIABLE_STOP = "_@"
     # to get a behavior like ada library template_parser
 
+    # check tutorial
+    # https://makina-corpus.com/blog/metier/2016/the-worlds-simplest-python-template-engine
+
     def __init__(self):
         pass
 
