@@ -1,3 +1,28 @@
-project {{ project_name }} is
+with "../common/shared.gpr";
 
-end {{ project_name }};
+project @_Capitalize:Project_Name_@ is
+
+  for Create_Missing_Dirs use "True";
+
+  Src_Lst := ();
+  Src_Lst := Src_Lst & "./src_lib";
+  for Source_Dirs use Src_Lst;
+
+  Exc_Src_Lst := ();
+  for Excluded_Source_Files use Exc_Src_Lst;
+
+  for Object_Dir use Shared.Object_Dir;
+  for Library_Dir use Shared.Library_Dir;
+
+  for Library_Name use "code_generator_@_Project_Name_@";
+  for Library_Kind use "static";
+
+  @@--Test for Filter @_Upper:double:Project_Name_@
+
+  @_Double:b_@
+
+  package Compiler renames Shared.Compiler;
+
+  package Builder renames Shared.Builder;
+
+end @_Capitalize:Project_Name_@;
