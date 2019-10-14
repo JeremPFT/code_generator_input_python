@@ -32,3 +32,19 @@ def capitalize_identifier(identifier):
 def build_dir(dir):
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+def compare_text(expected, actual):
+    '''
+    compare each line of given texts
+    '''
+
+    expected_lines = expected.split('\n')
+    actual_lines   = actual.split('\n')
+
+    for line_num in range(0, len(expected_lines)):
+        if expected_lines[line_num] != actual_lines[line_num]:
+            print("ERROR line %s" % (str(line_num)))
+            print("expects '%s'" % (expected_lines(line_num)))
+            print("got     '%s'" % (expected_lines(line_num)))
+
+    print("matching texts")

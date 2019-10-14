@@ -5,38 +5,44 @@ Defines a simple template engine which should follow ada library Template Parser
 See http://docs.adacore.com/live/wave/aws/html/template_parser
 '''
 
-
 import os
-import unittest
 
+from src.utils import compare_text
 
 class Statement():
-    def __init__(self, keyword):
-        pass
+    def __init__(self, keyword, stmt_start, stmt_stop):
+        self.start = stmt_start
+        self.stop = stmt_stop
+        self.keyword = keyword
+
+    def render(self, text):
+        return text
 
 
 class Filter():
     def __init__(self, keyword):
         lower_keyword = keyword.lower()
+
         if not lower_keyword in Filter.KEYWORDS:
-            raise ValueError("invalid filter '%s'" % (keyword))
+            raise ValueError("unknown filter '%s'" % (keyword))
+
         self.index = Filter.KEYWORDS.index(lower_keyword)
 
     def process(self, argument):
         the_process = Filter.PROCESSING[self.index]
         return the_process(self, argument)
 
-    def do_capitalize(self, argument):
+    def __do_capitalize(self, argument):
         words = argument.split("_")
         splitted_image = []
         for word in words:
             splitted_image.append(word.capitalize())
         return "_".join(splitted_image)
 
-    def do_upper(self, argument):
+    def __do_upper(self, argument):
         return argument.upper()
 
-    def do_double(self, argument):
+    def __do_double(self, argument):
         image = ""
         for car in argument:
             image += car
@@ -50,9 +56,9 @@ class Filter():
     )
 
     PROCESSING = (
-        do_capitalize,
-        do_upper,
-        do_double,
+        __do_capitalize,
+        __do_upper,
+        __do_double,
     )
 
 
@@ -137,13 +143,26 @@ class Template_Engine():
             # print("line %s: '%s'" % (str(count), line.replace("\n", "")))
             print(line.replace("\n", ""))
 
+        return ''.join(rendered)
 
-if __name__ == '__main__':
+def test_engine():
     template_dir = "d:/Users/jpiffret/AppData/Roaming/Dropbox/projets_perso/ada/code_generator_py/templates"
     te = Template_Engine(template_dir)
 
-    te.render("lib_project.gpr", {
+    os.chdir(template_dir)
+
+    output = te.render("lib_project.gpr", {
         "Project_Name" : "essai_1_azerty",
         "A" : "zerty",
         "b" : "ercredi",
     })
+
+    result = open("lib_project.out", "w")
+    result.write(output)
+    result.close()
+    result = open("lib_project.out", "r")
+    expected = open("lib_project.in", "r")
+    compare_text(expected = expected.read(), actual = result.read())
+
+if __name__ == '__main__':
+    test_engine()

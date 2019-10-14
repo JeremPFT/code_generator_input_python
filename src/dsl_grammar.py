@@ -3,7 +3,6 @@
 import os
 import ply.yacc as yacc
 
-# import src.lexer
 from src.lexer import tokens
 
 from src.uml_model import *
@@ -515,7 +514,6 @@ def p_project_type(p):
         raise SyntaxError
 
     p[0] = p[2]
-
 
 def p_output_directory(p):
     '''

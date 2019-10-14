@@ -12,6 +12,7 @@ from jinja2 import (
 from src.uml_model import *
 from src.utils import (indent, dbg, capitalize_identifier, build_dir)
 
+
 class Output_Ada():
     def __init__(self):
         self.env = Environment(loader      = FileSystemLoader('templates'),
@@ -21,6 +22,9 @@ class Output_Ada():
         self._output_project(project)
 
     def _output_project(self, project):
+        if project.__class__.__name__:
+            raise TypeError("Project instance expected")
+
         template = self.env.get_template('lib_project.gpr')
 
         print()
