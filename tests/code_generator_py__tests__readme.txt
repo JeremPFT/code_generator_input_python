@@ -1,0 +1,64 @@
+#+TITLE: Code Generator, python implementation. README for Tests
+#+STARTUP: showeverything
+#+OPTIONS: ^:{}
+
+* simple_project_1.txt
+Expected project is:
+- name: "simple_project_1"
+- output_directory: "~/tests/simple_project_1"
+  - note: "~/tests" is created at the beginning of the test, deleted at the end
+- template file is "~/workspace/code_generator_py/tests/simple_project_1.tmpl"
+- expected file is "~/workspace/code_generator_py/tests/simple_project_1.expected"
+** expected results:
+- directories created:
+  - "~/tests/simple_project_1"
+  - "~/tests/simple_project_1/src"
+- files created:
+  - "~/tests/simple_project_1/simple_project_1.gpr"
+
+: with "../common/shared.gpr";
+:
+: library project Simple_Project_1 is
+:
+:   for Create_Missing_Dirs use "True";
+:
+:   Src_Lst := ();
+:   Src_Lst := Src_Lst & "./src_lib";
+:   for Source_Dirs use Src_Lst;
+:
+:   Exc_Src_Lst := ();
+:   for Excluded_Source_Files use Exc_Src_Lst;
+:
+:   for Object_Dir use Shared.Object_Dir;
+:   for Library_Dir use Shared.Library_Dir;
+:
+:   for Library_Name use "simple_project_1";
+:   for Library_Kind use "static";
+:
+:   package Compiler renames Shared.Compiler;
+:
+:   package Builder renames Shared.Builder;
+:
+: end Simple_Project_1;
+
+** some things to add later
+- A brief description of the project, which will be the title of the README file;
+- A little longer description, which will be the 'Brief' section of the README file.
+- The readme should have the following model:
+
+: #+TITLE:	README for Code Generator project, Model module
+: #+AUTHOR:	Jeremy Piffret
+: #+EMAIL:	j.piffret@gmail.com
+: #+DATE:		2019-09-06
+: #+STARTUP:	content
+:
+: * Brief
+:
+: Model module defines the objects used as abstraction to generate a project from
+: a specification.
+
+* COMMENT Local Variables
+# Local Variables:
+# mode:org-mode
+# coding: utf-8-unix
+# End:
