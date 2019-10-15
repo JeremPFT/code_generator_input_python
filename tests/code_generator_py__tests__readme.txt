@@ -2,19 +2,27 @@
 #+STARTUP: showeverything
 #+OPTIONS: ^:{}
 
-* simple_project_1.txt
-Expected project is:
-- name: "simple_project_1"
-- output_directory: "~/tests/simple_project_1"
-  - note: "~/tests" is created at the beginning of the test, deleted at the end
-- template file is "~/workspace/code_generator_py/tests/simple_project_1.tmpl"
-- expected file is "~/workspace/code_generator_py/tests/simple_project_1.expected"
-** expected results:
+* Test 1
+
+** Description
+
+Create a project named =test_1= in directory  =~/tests/test_1=
+
+Input file is =tests/test_1.dsl=
+
+Template file is =tests/test_1.template=
+
+Expected file is =tests/test_1.expected=
+
+/note: directory =~/tests= is created at the beginning of the test, deleted at the end/
+
+** Validation
+
 - directories created:
-  - "~/tests/simple_project_1"
-  - "~/tests/simple_project_1/src"
+  - =~/tests/simple_project_1=
+  - =~/tests/simple_project_1/src=
 - files created:
-  - "~/tests/simple_project_1/simple_project_1.gpr"
+  - =~/tests/simple_project_1/simple_project_1.gpr=
 
 : with "../common/shared.gpr";
 :
@@ -59,6 +67,6 @@ Expected project is:
 
 * COMMENT Local Variables
 # Local Variables:
-# mode:org-mode
+# mode:org
 # coding: utf-8-unix
 # End:

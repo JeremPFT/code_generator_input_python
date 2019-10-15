@@ -1,3 +1,5 @@
+-- template for test 1
+
 with "../common/shared.gpr";
 
 library project @_capitalize:project_name_@ is

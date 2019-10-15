@@ -1,9 +1,9 @@
 import os
 
-from src.dsl_grammar import test_grammar
-from src.lexer import test_lexer
-from src.output_ada import Output_Ada
-import src.template_engine
+# from src.dsl_grammar import test_grammar
+# from src.lexer import test_lexer
+# from src.output_ada import Output_Ada
+# import src.template_engine
 
 # data = '''
 # project project_name
@@ -21,4 +21,6 @@ import src.template_engine
 # generator = Output_Ada()
 # generator.output(prj)
 
-src.template_engine.test_engine()
+# src.template_engine.test_engine()
+
+import tests.test_1
