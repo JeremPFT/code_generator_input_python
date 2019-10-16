@@ -1,8 +1,14 @@
 import os
 
 from src.uml_model import *
-from src.utils import (indent, dbg, capitalize_identifier, build_dir)
 from src.template_engine import Template_Engine
+from src.utils import (
+    indent,
+    dbg,
+    capitalize_identifier,
+    build_dir,
+    directory,
+)
 
 
 class Generator_Ada_Project():
@@ -20,7 +26,7 @@ class Generator_Ada_Project():
         self.__output_project()
 
     def __create_tree(self):
-        prj_dir = os.path.normpath(self.__project.output_directory())
+        prj_dir = directory(self.__project.output_directory())
         build_dir(prj_dir)
         build_dir(os.path.join(prj_dir, "src"))
 
@@ -29,16 +35,16 @@ class Generator_Ada_Project():
 
         cap_project_name = capitalize_identifier(self.__project.name)
 
-        print("project name: %s" % (cap_project_name))
-
         te = self.__template_engine
 
-        rendered_template = te.render (file_name    = "project.gpr",
-                                       dico = {'project_name' : cap_project_name})
+        dico = {'project_name' : cap_project_name}
+        tmpl_name = "project.gpr"
+        rendered_template = te.render (file_name = tmpl_name,
+                                       dico = dico)
 
-        f = open(self.__project.name + ".gpr", "w")
+        prj_dir = directory(self.__project.output_directory())
+        gpr_file_name = self.__project.name + ".gpr"
+        gpr_file_name = os.path.join(prj_dir, gpr_file_name)
+        f = open(gpr_file_name, "w")
         f.write(rendered_template)
         f.close()
-
-        print("file generated: ")
-        print(rendered_template)

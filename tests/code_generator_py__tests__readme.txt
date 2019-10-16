@@ -8,25 +8,25 @@
 
 Create a project named =test_1= in directory  =~/tests/test_1=
 
-Input file is =tests/test_1.dsl=
+Input file is =code_generator_py/tests/test_1.dsl=
 
-Template file is =tests/test_1.template=
+Template file is =code_generator_py/tests/test_1.template=
 
-Expected file is =tests/test_1.expected=
+Expected file is =code_generator_py/tests/test_1.expected=
 
 /note: directory =~/tests= is created at the beginning of the test, deleted at the end/
 
 ** Validation
 
 - directories created:
-  - =~/tests/simple_project_1=
-  - =~/tests/simple_project_1/src=
+  - =~/tests/test_1=
+  - =~/tests/test_1/src=
 - files created:
-  - =~/tests/simple_project_1/simple_project_1.gpr=
+  - =~/tests/test_1/test_1.gpr=
 
 : with "../common/shared.gpr";
 :
-: library project Simple_Project_1 is
+: library project Test_1 is
 :
 :   for Create_Missing_Dirs use "True";
 :
@@ -40,14 +40,14 @@ Expected file is =tests/test_1.expected=
 :   for Object_Dir use Shared.Object_Dir;
 :   for Library_Dir use Shared.Library_Dir;
 :
-:   for Library_Name use "simple_project_1";
+:   for Library_Name use "test_1";
 :   for Library_Kind use "static";
 :
 :   package Compiler renames Shared.Compiler;
 :
 :   package Builder renames Shared.Builder;
 :
-: end Simple_Project_1;
+: end Test_1;
 
 ** some things to add later
 - A brief description of the project, which will be the title of the README file;

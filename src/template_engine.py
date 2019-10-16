@@ -7,7 +7,9 @@ See http://docs.adacore.com/live/wave/aws/html/template_parser
 
 import os
 
-from src.utils import compare_text
+from src.utils import (
+    text_files_match,
+    )
 
 class Statement():
     def __init__(self, keyword, stmt_start, stmt_stop):
@@ -104,11 +106,11 @@ class Template_Engine():
         return rendered
 
     def render(self, file_name, dico):
-        os.chdir(self.__template_directory)
-
         self.dico = dico
 
-        template = open(file_name, "r")
+        file_full_path = os.path.join(self.__template_directory, file_name)
+
+        template = open(file_full_path, "r")
         count    = 0
         rendered = []
 
@@ -138,11 +140,6 @@ class Template_Engine():
 
         count = 0
 
-        for line in rendered:
-            count += 1
-            # print("line %s: '%s'" % (str(count), line.replace("\n", "")))
-            print(line.replace("\n", ""))
-
         return ''.join(rendered)
 
 def test_engine():
@@ -160,9 +157,8 @@ def test_engine():
     result = open("lib_project.out", "w")
     result.write(output)
     result.close()
-    result = open("lib_project.out", "r")
-    expected = open("lib_project.in", "r")
-    compare_text(expected = expected.read(), actual = result.read())
+    text_files_match(expected = "lib_project.in",
+                     actual   = "lib_project.out")
 
 if __name__ == '__main__':
     test_engine()

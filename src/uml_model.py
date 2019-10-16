@@ -3,6 +3,7 @@ import os
 from src.utils import (
     indent,
     dbg,
+    directory,
 )
 
 class Project:
@@ -22,7 +23,8 @@ class Project:
         return self._output_directory
 
     def set_output_directory(self, output_directory):
-        self._output_directory = output_directory.replace('"', '')
+        dir = output_directory.replace('"', '')
+        self._output_directory = directory(dir)
 
     def set_type(self, prj_type):
         if not prj_type in Project.TYPES:
