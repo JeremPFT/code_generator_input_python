@@ -1,0 +1,26 @@
+-- template for test 1
+
+with "../common/shared.gpr";
+
+library project Test_1 is
+
+  for Create_Missing_Dirs use "True";
+
+  Src_Lst := ();
+  Src_Lst := Src_Lst & "./src_lib";
+  for Source_Dirs use Src_Lst;
+
+  Exc_Src_Lst := ();
+  for Excluded_Source_Files use Exc_Src_Lst;
+
+  for Object_Dir use Shared.Object_Dir;
+  for Library_Dir use Shared.Library_Dir;
+
+  for Library_Name use "test_1";
+  for Library_Kind use "static";
+
+  package Compiler renames Shared.Compiler;
+
+  package Builder renames Shared.Builder;
+
+end Test_1;
