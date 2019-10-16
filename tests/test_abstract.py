@@ -35,12 +35,14 @@ class Test_Abstract:
         pass
 
     def run(self):
+        print("\n========== CAMPAIGN %s ==========\n" % (self.__class__.__name__))
+
         self._setup()
         self._build_test_list()
         for test in self.__test_list:
             self._test(test)
 
-        print("\n========== RESULT ==========\n")
+        print("\n---------- RESULT ----------\n")
 
         print("tests count: " + str(len(self.__test_list)))
         print("tests ok:    " + str(len(self.__test_ok_list)))

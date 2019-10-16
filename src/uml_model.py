@@ -17,6 +17,8 @@ class Project:
         self.name              = name
         self._output_directory = ""
         self._type             = ""
+        self._readme_title     = ""
+        self._readme_brief     = ""
         self._package_list     = []
 
     def output_directory(self):
@@ -31,6 +33,16 @@ class Project:
             raise Exception("unknown project type: " + prj_type)
 
         self._type = prj_type
+
+    def set_readme_title(title):
+        if type(title) != str:
+            raise Exception("readme title has to be a string")
+        self._readme_title = title
+
+    def set_readme_brief(brief):
+        if type(brief) != str:
+            raise Exception("readme brief has to be a string")
+        self._readme_brief = brief
 
     def add_package(self, package_item):
         self._package_list.append(package_item)

@@ -50,7 +50,10 @@ Expected file is =code_generator_py/tests/test_1.expected=
 : end Test_1;
 
 ** some things to add later
-- A brief description of the project, which will be the title of the README file;
+
+*** a README.org file for git repository
+
+- A brief description of the project, which will be the title of the README file.
 - A little longer description, which will be the 'Brief' section of the README file.
 - The readme should have the following model:
 
@@ -64,6 +67,8 @@ Expected file is =code_generator_py/tests/test_1.expected=
 :
 : Model module defines the objects used as abstraction to generate a project from
 : a specification.
+
+* Test 002
 
 * COMMENT Local Variables
 # Local Variables:

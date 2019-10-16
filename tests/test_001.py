@@ -29,7 +29,7 @@ def check_src_dir(test):
     return dir_exists(src_dir, "src_dir")
 
 def check_gpr_file(test):
-    expected = "tests/test_001/test_001.gpr.expected"
+    expected = "~/workspace/code_generator_py/tests/test_001/test_001.gpr.expected"
     obtained = "~/tests/test_001/test_001.gpr"
     return text_files_match(expected = expected, obtained = obtained)
 
@@ -44,11 +44,13 @@ class Test_001(Test_Abstract):
     def _setup(self):
         super()._setup()
 
-        input_data = open("tests/test_001/test_001.dsl", "r").read()
+        input_data = open(directory("~/workspace/code_generator_py/tests/" +
+                                    "test_001/test_001.dsl"), "r").read()
 
         self.__project = parser.parse(input_data, debug = False)
 
-        template_engine = Template_Engine(template_directory = "tests/test_001")
+        template_dir = directory("~/workspace/code_generator_py/tests/test_001")
+        template_engine = Template_Engine(template_directory = template_dir)
         generator = Generator_Ada_Project(template_engine)
         generator.output(self.__project)
 
@@ -56,13 +58,14 @@ class Test_001(Test_Abstract):
         super()._setdown()
 
     def _build_test_list(self):
-        for test in (
-                check_project,
-                check_prj_dir,
-                failure,
-                check_src_dir,
-                check_gpr_file,
-        ):
+        test_list = (
+            check_project,
+            check_prj_dir,
+            failure,
+            check_src_dir,
+            check_gpr_file,
+        )
+        for test in test_list:
             self._add_test(test)
 
     def get_project(self):

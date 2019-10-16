@@ -98,7 +98,7 @@ def p_project_init(p):
 
 def p_project_content(p):
     '''
-    project_content : output_directory project_type package_list
+    project_content : output_directory project_type readme_content package_list
     '''
     p[-1].set_output_directory(p[1])
     p[-1].set_type(p[2])
@@ -106,7 +106,14 @@ def p_project_content(p):
     for package_item in p[3]:
         p[-1].add_package(package_item)
 
-def p_project_close_named(p):
+def p_readme_content(p):
+    '''
+    reamde_content : REAMDE_TITLE string REAMDE_BRIEF string
+    '''
+    p[-2].set_readme_title(p[2])
+    p[-2].set_readme_brief(p[4])
+
+def p_project_close_with_name(p):
     '''
     project_close : END PROJECT IDENTIFIER SEMICOLON
     '''
@@ -156,7 +163,7 @@ def p_package_content(p):
     p[-1].dependance_list          = p[1]
     p[-1].packageable_element_list = p[2]
 
-def p_package_close_named(p):
+def p_package_close_with_name(p):
     '''
     package_close : END PACKAGE IDENTIFIER SEMICOLON
     '''
@@ -335,7 +342,7 @@ def p_value_object_content(p):
         elif feature.__class__.__name__ == Operation.__name__:
             p[-1].add_operation(feature)
 
-def p_value_object_close_named(p):
+def p_value_object_close_with_name(p):
     '''
     value_object_close : END VALUE_OBJECT IDENTIFIER SEMICOLON
     '''
