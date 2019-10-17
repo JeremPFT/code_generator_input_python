@@ -60,6 +60,10 @@ def text_files_match(expected, obtained):
     compare each line of given texts
     '''
 
+    dbg("%s expected: %s, obtained: %s" % (text_files_match.__name__,
+                                           expected,
+                                           obtained))
+
     expected_lines = open(directory(expected), "r").read().split('\n')
     obtained_lines = open(directory(obtained), "r").read().split('\n')
 

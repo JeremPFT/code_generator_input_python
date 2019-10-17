@@ -6,6 +6,16 @@ from src.utils import (
     directory,
 )
 
+class NoNameError(Exception):
+    pass
+
+def validate_name_arg(name):
+    if type(name) != str:
+        raise TypeError("name has to be a string")
+    elif name == "":
+        raise NoNameError("name is empty")
+
+
 class Project:
     TYPE_STATIC_LIB = "static_library"
     TYPE_EXEC       = "executable"
@@ -14,6 +24,8 @@ class Project:
     TYPES = [TYPE_STATIC_LIB, TYPE_EXEC, TYPE_TEST]
 
     def __init__(self, name):
+        validate_name_arg(name)
+
         self.name              = name
         self._output_directory = ""
         self._type             = ""

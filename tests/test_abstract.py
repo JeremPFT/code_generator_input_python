@@ -19,11 +19,9 @@ class Test_Abstract:
 
     def _works(self, test):
         self.__test_ok_list.append(test)
-        print("test " + str(test.__name__) + ": OK")
 
     def _fails(self, test):
         self.__test_ko_list.append(test)
-        print("test " + str(test) + ": KO")
 
     def _setup(self):
         pass
@@ -42,19 +40,20 @@ class Test_Abstract:
         for test in self.__test_list:
             self._test(test)
 
-        print("\n---------- RESULT ----------\n")
+        self._setdown()
 
-        print("tests count: " + str(len(self.__test_list)))
-        print("tests ok:    " + str(len(self.__test_ok_list)))
-        print("tests ko:    " + str(len(self.__test_ko_list)))
-        print()
+        print("\n========== %s RESULTS ==========\n" % (self.__class__.__name__))
+
+        print("Total Tests Run: " + str(len(self.__test_list)))
+
+        print("\nSuccessful Tests: " + str(len(self.__test_ok_list)))
 
         for test in self.__test_ok_list:
-            print("test " + test.__name__ + " OK")
+            print("  Test " + test.__name__)
 
-        print()
+        print("\nFailed Tests: " + str(len(self.__test_ko_list)))
 
         for test in self.__test_ko_list:
-            print("test " + test.__name__ + " KO")
+            print("  Test " + test.__name__)
 
-        self._setdown()
+        print("\n========== %s END ==========\n" % (self.__class__.__name__))

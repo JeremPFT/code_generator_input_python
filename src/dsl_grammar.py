@@ -83,6 +83,12 @@ def check_closing_name(p, class_name):
 # - project
 #
 
+def p_project_item_no_named(p):
+    '''
+    project : PROJECT OUTPUT_DIRECTORY
+    '''
+    raise NoNameError("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
+
 def p_project_item(p):
     '''
     project : project_init project_content project_close
@@ -94,7 +100,16 @@ def p_project_init(p):
     project_init : PROJECT IDENTIFIER
     '''
     p[0] = Project(name = p[2])
-    p.parser.current_project = p[0]
+
+# def p_project_init_no_name(p):
+#     '''
+#     project_init : PROJECT
+#     '''
+#     # p.parser.error = NoNameError()
+#     # print("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
+#     # p[0] = Project(name = "")
+#     p.parser.error = NoNameError("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
+#     p_error(p)
 
 def p_project_content(p):
     '''
@@ -517,7 +532,7 @@ def p_project_type(p):
     prj_type = p[2]
 
     if not prj_type in Project.TYPES:
-        print("ERROR: project type '%s' undefined" % prj_type)
+        print("!! SyntaxError: project type {!r} undefined line {}".format(prj_type, p.lineno(1)))
         raise SyntaxError
 
     p[0] = p[2]
@@ -544,18 +559,26 @@ def p_string_one(p):
 
 def p_error(p):
     if p == None:
-        print("Error: end of file")
+        print("!! SyntaxError: end of file")
         return
 
-    print("Syntax error in input!")
-    message = "line "
-    message += str(p.lineno)
-    message += ": unexpected "
-    message += str(p.type)
-    message += " " + str(p)
-    print(message)
+    if p.parser.error != None:
+        print(str(p.parser.error))
+
+        tok = None
+        while True:
+            tok = parser.token()
+            if tok == None:
+                break
+            else:
+                print("ignoring token line {!s}".format(tok.lineno))
+    else:
+        print("!! SyntaxError in input")
+        message = "line %s: unexpected %s %s" % (str(p.lineno), str(p.type), str(p))
+        print(message)
 
 parser = yacc.yacc(debug = False)
+parser.error = None
 parser.current_project   = None
 parser.current_package   = None
 parser.current_class     = None

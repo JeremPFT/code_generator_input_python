@@ -24,3 +24,4 @@ import os
 # src.template_engine.test_engine()
 
 import tests.test_001
+import tests.test_002

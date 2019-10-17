@@ -33,8 +33,6 @@ def check_gpr_file(test):
     obtained = "~/tests/test_001/test_001.gpr"
     return text_files_match(expected = expected, obtained = obtained)
 
-def failure(test):
-    return False
 
 class Test_001(Test_Abstract):
     def __init__(self):
@@ -61,7 +59,6 @@ class Test_001(Test_Abstract):
         test_list = (
             check_project,
             check_prj_dir,
-            failure,
             check_src_dir,
             check_gpr_file,
         )

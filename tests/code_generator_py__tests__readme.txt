@@ -2,7 +2,7 @@
 #+STARTUP: showeverything
 #+OPTIONS: ^:{}
 
-* Test 1
+* Test 001 (nominal)
 
 ** Description
 
@@ -68,7 +68,9 @@ Expected file is =code_generator_py/tests/test_1.expected=
 : Model module defines the objects used as abstraction to generate a project from
 : a specification.
 
-* Test 002
+* Test 002 (error in dsl description)
+
+the project has no name
 
 * COMMENT Local Variables
 # Local Variables:
