@@ -1,4 +1,4 @@
-import os
+import unittest
 
 # from src.dsl_grammar import test_grammar
 # from src.lexer import test_lexer
@@ -23,5 +23,7 @@ import os
 
 # src.template_engine.test_engine()
 
-import tests.test_001
-import tests.test_002
+from tests.test_001 import Test_Project_Nominal
+from tests.test_002 import Test_Unnamed_Project
+
+unittest.main()

@@ -1,4 +1,5 @@
 import os
+import logging
 
 from src.utils import (
     indent,
@@ -29,15 +30,19 @@ class Project:
         self.name              = name
         self._output_directory = ""
         self._type             = ""
-        self._readme_title     = ""
-        self._readme_brief     = ""
+        self._title            = ""
+        self._brief            = ""
         self._package_list     = []
 
     def output_directory(self):
         return self._output_directory
 
     def set_output_directory(self, output_directory):
+        if type(output_directory) != str:
+            raise Exception("output directory has to be a string")
+
         dir = output_directory.replace('"', '')
+        logging.warning("set output_directory to {!r}".format(dir))
         self._output_directory = directory(dir)
 
     def set_type(self, prj_type):
@@ -46,15 +51,20 @@ class Project:
 
         self._type = prj_type
 
-    def set_readme_title(title):
+    def set_title(self, title):
         if type(title) != str:
-            raise Exception("readme title has to be a string")
-        self._readme_title = title
+            raise Exception("title has to be a string")
 
-    def set_readme_brief(brief):
+        logging.warning("set title to {!r}".format(title))
+
+        self._title = title.replace('"', '')
+
+    def set_brief(self, brief):
         if type(brief) != str:
-            raise Exception("readme brief has to be a string")
-        self._readme_brief = brief
+            raise Exception("brief has to be a string")
+
+        logging.warning("set brief to {!r}".format(brief))
+        self._brief = brief.replace('"', '')
 
     def add_package(self, package_item):
         self._package_list.append(package_item)
@@ -63,6 +73,8 @@ class Project:
     def __str__(self):
         image  = "<" + self.__class__.__name__ + "> '%s'" % (self.name) + os.linesep
         image += "in %s" % (self._output_directory) + os.linesep
+        image += "title {!r}".format(self._title) + os.linesep
+        image += "brief {!r}".format(self._brief) + os.linesep
         indent.incr()
         j = 1
         for package in self._package_list:

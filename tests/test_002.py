@@ -1,3 +1,5 @@
+import unittest
+
 import os
 
 from src.generator_ada_project import Generator_Ada_Project
@@ -12,38 +14,18 @@ from src.utils import (
     text_files_match,
 )
 
-from tests.test_abstract import (
-    Test_Abstract,
-)
 
-def no_name_project(test):
-    try:
-        test.__project = parser.parse(test.input_data, debug = False)
-    except NoNameError as err:
-        print(str(err))
-        return True
-    return False
+class Test_Unnamed_Project(unittest.TestCase):
 
-class Test_002(Test_Abstract):
-    def __init__(self):
-        super().__init__()
-        self.__project = None
+    @classmethod
+    def setUpClass(cls):
+        cls.input_data = open("tests/test_002/test_002.dsl", "r").read()
 
-    def _setup(self):
-        super()._setup()
+    # @classmethod
+    # def tearDownClass(cls):
+#        cls.input_data.close()
 
-        self.input_data = open("tests/test_002/test_002.dsl", "r").read()
-
-    def _setdown(self):
-        pass
-
-    def _build_test_list(self):
-        for test in (
-                no_name_project,
-        ):
-            self._add_test(test)
-
-    def get_project(self):
-        return self.__project
-
-Test_002().run()
+    def test_no_name_project(self):
+        self.assertRaises(NoNameError,
+                          parser.parse,
+                          (Test_Unnamed_Project.input_data))

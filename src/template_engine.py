@@ -140,6 +140,8 @@ class Template_Engine():
 
         count = 0
 
+        template.close()
+
         return ''.join(rendered)
 
 def test_engine():

@@ -100,6 +100,7 @@ def p_project_init(p):
     project_init : PROJECT IDENTIFIER
     '''
     p[0] = Project(name = p[2])
+    p.parser.current_project = p[0]
 
 # def p_project_init_no_name(p):
 #     '''
@@ -115,18 +116,19 @@ def p_project_content(p):
     '''
     project_content : output_directory project_type readme_content package_list
     '''
-    p[-1].set_output_directory(p[1])
-    p[-1].set_type(p[2])
+    p.parser.current_project.set_output_directory(p[1])
+    p.parser.current_project.set_type(p[2])
+    p.parser.current_project.set_title(p[3][0])
+    p.parser.current_project.set_brief(p[3][1])
 
-    for package_item in p[3]:
-        p[-1].add_package(package_item)
+    for package_item in p[4]:
+        p.parser.current_project.add_package(package_item)
 
 def p_readme_content(p):
     '''
-    reamde_content : REAMDE_TITLE string REAMDE_BRIEF string
+    readme_content : README_TITLE string README_BRIEF string
     '''
-    p[-2].set_readme_title(p[2])
-    p[-2].set_readme_brief(p[4])
+    p[0] = (p[2], p[4])
 
 def p_project_close_with_name(p):
     '''
@@ -547,6 +549,7 @@ def p_string_one_or_more(p):
     '''
     string : string AMP STRING_VALUE
     '''
+    print("read string_1 {!r} and {!r}".format(p[1], p[3]))
     left  = p[1].replace('"', '')
     right = p[3].replace('"', '')
     p[0]  = '"' + left + right + '"'
@@ -555,6 +558,7 @@ def p_string_one(p):
     '''
     string : STRING_VALUE
     '''
+    print("read string_2 {!r}".format(p[1]))
     p[0] = p[1]
 
 def p_error(p):
@@ -562,16 +566,16 @@ def p_error(p):
         print("!! SyntaxError: end of file")
         return
 
-    if p.parser.error != None:
-        print(str(p.parser.error))
+    # if p.parser.error != None:
+    #     print(str(p.parser.error))
 
-        tok = None
-        while True:
-            tok = parser.token()
-            if tok == None:
-                break
-            else:
-                print("ignoring token line {!s}".format(tok.lineno))
+    #     tok = None
+    #     while True:
+    #         tok = parser.token()
+    #         if tok == None:
+    #             break
+    #         else:
+    #             print("ignoring token line {!s}".format(tok.lineno))
     else:
         print("!! SyntaxError in input")
         message = "line %s: unexpected %s %s" % (str(p.lineno), str(p.type), str(p))
@@ -583,6 +587,12 @@ parser.current_project   = None
 parser.current_package   = None
 parser.current_class     = None
 parser.current_procedure = None
+
+# def parse_input(input_path):
+#     global parser
+#     input_file = directory(input_path)
+
+#     input_data = open("tests/test_002/test_002.dsl", "r").read()
 
 def test_grammar(data):
     result = parser.parse(data, debug = False)

@@ -22,6 +22,8 @@ reserved = {
     'project'          : 'PROJECT',
     'query'            : 'QUERY',
     'return'           : 'RETURN',
+    'readme_title'     : 'README_TITLE',
+    'readme_brief'     : 'README_BRIEF',
     'subprogram'       : 'SUBPROGRAM',
     'use'              : 'USE',
     'value_object'     : 'VALUE_OBJECT',
@@ -95,7 +97,7 @@ def t_COMMENT(t):
     pass
 
 def t_STRING_VALUE(t):
-    r'".*"'
+    r'".*?"'
     return t
 
 def t_INTEGER_VALUE(t):
