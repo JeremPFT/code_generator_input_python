@@ -120,9 +120,11 @@ def t_error(t):
 
 def find_column(input, token):
     line_start = input.rfind('\n', 0, token.lexpos) + 1
+    print("line_start = {!s}, lexpos = {!s}".format(line_start, token.lexpos))
     return (token.lexpos - line_start) + 1
 
-lexer = lex.lex(debug = False)
+def build_lexer():
+    return lex.lex(debug = False)
 
 def test_lexer(data):
     lexer.input(data)

@@ -3,7 +3,6 @@ import logging
 
 from src.utils import (
     indent,
-    dbg,
     directory,
 )
 
@@ -25,6 +24,9 @@ class Project:
     TYPES = [TYPE_STATIC_LIB, TYPE_EXEC, TYPE_TEST]
 
     def __init__(self, name):
+        logging.basicConfig(level=logging.DEBUG)
+        self.log = logging.getLogger(__name__)
+
         validate_name_arg(name)
 
         self.name              = name
@@ -42,7 +44,6 @@ class Project:
             raise Exception("output directory has to be a string")
 
         dir = output_directory.replace('"', '')
-        logging.warning("set output_directory to {!r}".format(dir))
         self._output_directory = directory(dir)
 
     def set_type(self, prj_type):
@@ -55,15 +56,12 @@ class Project:
         if type(title) != str:
             raise Exception("title has to be a string")
 
-        logging.warning("set title to {!r}".format(title))
-
         self._title = title.replace('"', '')
 
     def set_brief(self, brief):
         if type(brief) != str:
             raise Exception("brief has to be a string")
 
-        logging.warning("set brief to {!r}".format(brief))
         self._brief = brief.replace('"', '')
 
     def add_package(self, package_item):

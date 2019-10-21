@@ -1,7 +1,7 @@
 import unittest
 
 from src.generator_ada_project import Generator_Ada_Project
-from src.dsl_grammar import parser
+from src.dsl_grammar import parse_input
 from src.template_engine import Template_Engine
 
 from src.utils import (
@@ -16,15 +16,9 @@ class Test_Project_Nominal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.input_file_name = directory("~/workspace/code_generator_py/tests/" +
-                                         "test_001/test_001.dsl")
-        cls.input_file = open(cls.input_file_name, "r")
-        cls.project = parser.parse(cls.input_file.read(), debug = False)
-
-        # cls.project = parse_input("~/workspace/code_generator_py/tests/" +
-        #                           "test_001/test_001.dsl")
-
-        print(str(cls.project))
+        print(__class__)
+        filename = "~/workspace/code_generator_py/tests/test_001/test_001.dsl"
+        cls.project = parse_input(filename)
 
         template_dir = directory("~/workspace/code_generator_py/tests/test_001")
         template_engine = Template_Engine(template_directory = template_dir)
@@ -33,10 +27,10 @@ class Test_Project_Nominal(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.input_file.close()
         rmdir("~/tests")
 
     def test_field_name(self):
+        print(__name__)
         self.assertEqual(Test_Project_Nominal.project.name,
                          "test_001",
                          "project name")
@@ -55,3 +49,18 @@ class Test_Project_Nominal(unittest.TestCase):
         self.assertEqual(Test_Project_Nominal.project._brief,
                          "test 001 brief",
                          "project brief")
+
+    def _setdown(self):
+        super()._setdown()
+
+    def _build_test_list(self):
+        for test in (
+                check_project,
+                check_prj_dir,
+                check_src_dir,
+                check_gpr_file,
+        ):
+            self._add_test(test)
+
+    def get_project(self):
+        return self.__project
