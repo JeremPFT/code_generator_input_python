@@ -112,6 +112,7 @@ def t_newline(t):
     t.lexer.lineno += len(t.value)
 
 def t_eof(t):
+    t.lexer.lineno = 1
     return None
 
 def t_error(t):
@@ -123,8 +124,11 @@ def find_column(input, token):
     print("line_start = {!s}, lexpos = {!s}".format(line_start, token.lexpos))
     return (token.lexpos - line_start) + 1
 
-def build_lexer():
-    return lex.lex(debug = False)
+lexer = lex.lex(debug = False)
+lexer.lineno = 1
+
+# def build_lexer():
+#     return lex.lex(debug = False)
 
 def test_lexer(data):
     lexer.input(data)

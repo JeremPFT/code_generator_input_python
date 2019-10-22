@@ -19,14 +19,10 @@ class Test_Unnamed_Project(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         print(__class__)
-        # cls.input_data = parse_input("tests/test_002/test_002.dsl")
-        # cls.input_file = open("tests/test_002/test_002.dsl", "r")
-        # cls.input_data = cls.input_file.read()
 
     @classmethod
     def tearDownClass(cls):
         pass
-       # cls.input_file.close()
 
     def test_no_name_project(self):
         input_file_name = "tests/test_002/test_002.dsl"

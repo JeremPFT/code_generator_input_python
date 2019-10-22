@@ -5,7 +5,6 @@ import ply.yacc as yacc
 
 from src.lexer import (
     tokens,
-    build_lexer,
     find_column,
 )
 
@@ -87,15 +86,6 @@ def check_closing_name(p, class_name):
 # - project
 #
 
-# def p_project_item_no_named(p):
-#     '''
-#     project : PROJECT OUTPUT_DIRECTORY
-#     '''
-#     pos = 2
-#     message = "Error line {!s} token {!s} to {!s}: project need a name".format(p.lineno(pos), p.lexpos(pos), p.lexspan(pos))
-#     print(message)
-#     raise NoNameError(message)
-
 def p_project_item(p):
     '''
     project : project_init project_content project_close
@@ -106,13 +96,6 @@ def p_project_init(p):
     '''
     project_init : PROJECT IDENTIFIER
     '''
-    # pos = 1
-    # message = "init project line {!s} token {!s} {!s}".format(p.lineno(pos), p.lexspan(pos))
-    # print(message)
-    # pos = 0
-    # message = "init project line {!s} token {!s} {!s}".format(p.lineno(pos), p.lexspan(pos))
-    # print(message)
-
     p[0] = Project(name = p[2])
     p.parser.current_project = p[0]
 
@@ -120,41 +103,9 @@ def p_project_init_unnamed(p):
     '''
     project_init : PROJECT
     '''
-    line_start = p.parser.input_data.rfind('\n', 0, p.lexpos(1))
-    print("local line_start {!s}".format(line_start))
-
-
-    pos = 1
-    message = "ERROR unnamed project line"
-    message += " {!s} token {!s} column {!s}".format(p.lineno(pos),
-                                                     p.lexspan(pos),
-                                                     find_column(input = p.parser.input_data, token = p.lexer.token())
-    )
-    print(message)
+    message = "ERROR unnamed project line {}".format(p.lineno(1))
+    p.parser.log.fatal(message)
     raise NoNameError(message)
-
-    # p[0] = Project(name = p[2])
-    # p.parser.current_project = p[0]
-
-# def p_project_init_no_name(p):
-#     '''
-#     project_init : PROJECT
-#     '''
-#     # p.parser.error = NoNameError()
-#     # print("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
-#     # p[0] = Project(name = "")
-#     p.parser.error = NoNameError("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
-#     p_error(p)
-
-# def p_project_init_no_name(p):
-#     '''
-#     project_init : PROJECT
-#     '''
-#     # p.parser.error = NoNameError()
-#     # print("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
-#     # p[0] = Project(name = "")
-#     p.parser.error = NoNameError("SyntaxError line {!s}: project need a name".format(p.lineno(1)))
-#     p_error(p)
 
 def p_project_content(p):
     '''
@@ -172,12 +123,6 @@ def p_readme_content(p):
     '''
     readme_content : README_TITLE string README_BRIEF string
     '''
-    pos = p.lexpos(1)
-    line_start = p.parser.input_data.rfind('\n', 0, p.lexpos(1))
-    print("lexpos = {}".format(pos))
-    print("local line_start of readme {!s}".format(line_start ))
-    print("column: {}".format(pos - line_start))
-
     p[0] = (p[2], p[4])
 
 def p_project_close_with_name(p):
@@ -631,11 +576,14 @@ def p_error(p):
 
 def parse_input(input_path):
     parser = yacc.yacc(debug = False)
-    parser.error = None
+    parser.error             = None
     parser.current_project   = None
     parser.current_package   = None
     parser.current_class     = None
     parser.current_procedure = None
+
+    logging.basicConfig(level=logging.DEBUG)
+    parser.log = logging.getLogger(__name__)
 
     input_file_name = directory(input_path)
     input_file = open(input_file_name, "r")
@@ -643,7 +591,6 @@ def parse_input(input_path):
     input_file.close()
     project = parser.parse(
         input = parser.input_data,
-        lexer = build_lexer(),
         tracking = True,
     )
     return project
