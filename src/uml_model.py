@@ -9,12 +9,6 @@ from src.utils import (
 class NoNameError(Exception):
     pass
 
-def validate_name_arg(name):
-    if type(name) != str:
-        raise TypeError("name has to be a string")
-    elif name == "":
-        raise NoNameError("name is empty")
-
 
 class Project:
     TYPE_STATIC_LIB = "static_library"
@@ -27,7 +21,9 @@ class Project:
         logging.basicConfig(level=logging.DEBUG)
         self.log = logging.getLogger(__name__)
 
-        validate_name_arg(name)
+        assert type(name) == str, \
+            "name is not a string {name!r}"
+        assert name != "", "name is empty"
 
         self.name              = name
         self._output_directory = ""
@@ -40,21 +36,21 @@ class Project:
         return self._output_directory
 
     def set_output_directory(self, output_directory):
-        if type(output_directory) != str:
-            raise Exception("output directory has to be a string")
+        assert type(output_directory) == str, \
+            "output directory has to be a string"
 
         dir = output_directory.replace('"', '')
         self._output_directory = directory(dir)
 
     def set_type(self, prj_type):
-        if not prj_type in Project.TYPES:
-            raise Exception("unknown project type: " + prj_type)
+        assert prj_type in Project.TYPES, \
+            "unknown project type: " + prj_type
 
         self._type = prj_type
 
     def set_title(self, title):
-        if type(title) != str:
-            raise Exception("title has to be a string")
+        assert type(title) == str, \
+            "title has to be a string"
 
         self._title = title.replace('"', '')
 
@@ -69,7 +65,7 @@ class Project:
         package_item.project = self
 
     def __str__(self):
-        image  = "<" + self.__class__.__name__ + "> '%s'" % (self.name) + os.linesep
+        image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + os.linesep
         image += "in %s" % (self._output_directory) + os.linesep
         image += "title {!r}".format(self._title) + os.linesep
         image += "brief {!r}".format(self._brief) + os.linesep
@@ -84,13 +80,85 @@ class Project:
         return image
 
 
-class Named_Element:
+class Element:
+    '''
+    see UML 2.4.1 Infrastructure section 9.15.1
+    '''
+
+    def __init__(self, owner = None, must_be_owned = False):
+        if owner == self:
+            raise ValueError("an element can not own itself")
+
+        if must_be_owned and (owner == None):
+            raise ValueError("the element must be owned")
+
+        self.owner         = owner
+        self.owned_element = []
+        self.owned_comment = []
+        self.must_be_owned = must_be_owned
+
+    def all_owned_element(self):
+        result = []
+
+        for element in self.owned_element:
+            result.append(element)
+            result.append(element.all_owned_element)
+
+        return result
+
+    def __str__(self):
+        return "<{" + self.__class__.__name__ + "}>"
+
+class Comment(Element):
+    '''
+    see UML 2.4.1 Infrastructure section 9.5
+    '''
+
+    def __init__(self, annoted_element = []):
+        super.__init__()
+
+
+class Multiplicity(Element):
+    '''
+    see UML 2.4.1 Infrastructure section 9.12
+    '''
+
+    def __init__(self,
+                 is_ordered = False,
+                 is_unique = True,
+                 lower = 1,
+                 upper = 1):
+
+        if type(is_ordered) != bool:
+            raise TypeError("is_ordered must be a boolean")
+
+        if type(is_ordered) != bool:
+            raise TypeError("is_ordered must be a boolean")
+
+        if lower != None and type(lower) != int:
+            raise TypeError("lower must be an integer")
+
+        if lower != None and lower < 0:
+            raise ValueError("lower must be a integer positive")
+
+        if upper != None and type(upper) != int:
+            raise TypeError("upper must be an integer")
+
+        if upper != None and lower != None and upper < lower:
+            raise ValueError("upper must greater than lower")
+
+        self.is_ordered = is_ordered
+        self.is_unique  = is_unique
+        self.lower      = lower
+        self.upper      = upper
+
+
+class Named_Element(Element):
     def __init__(self, name):
         self.name = name
 
     def __str__(self):
-        image = "<" + self.__class__.__name__ + "> '%s'" % (self.name)
-        return image
+        return "super().__str__() '{self.name}'"
 
 
 class Namespace(Named_Element):
@@ -429,10 +497,20 @@ class Parameter(Typed_Element):
 
 
 class Property(Typed_Element):
+    '''
+    see UML 2.4.1 Infrastructure section 11.3.5
+
+    note
+    if a property is owned by a class, it is an /attribute/ of the class
+    '''
+
     def __init__(self, name, of_type, default = None):
         super().__init__(name, of_type, default)
         self.of_type = of_type
         self.default = default
+        self.owning_class = None
+        self.is_ordered = False
+        self.is_unique = False
 
     def __str__(self):
         image = super().__str__()

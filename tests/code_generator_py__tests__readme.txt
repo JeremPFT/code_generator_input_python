@@ -70,7 +70,9 @@ Expected file is =code_generator_py/tests/test_1.expected=
 
 * Test 002 (error in dsl description)
 
-the project has no name
+the project has no name, an exception is raised
+
+* Test 003 extension of 001, with a package and a class
 
 * COMMENT Local Variables
 # Local Variables:

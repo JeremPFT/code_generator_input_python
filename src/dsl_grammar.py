@@ -98,6 +98,7 @@ def p_project_init(p):
     '''
     p[0] = Project(name = p[2])
     p.parser.current_project = p[0]
+    print(p[0])
 
 def p_project_init_unnamed(p):
     '''
