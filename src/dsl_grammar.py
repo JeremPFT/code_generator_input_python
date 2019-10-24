@@ -24,7 +24,7 @@ project_content                    : output_directory project_type package_list
 project_close                      : END PROJECT IDENTIFIER SEMICOLON
 project_close                      : END PROJECT SEMICOLON
 package_list                       :
-package_list                       : package_list package
+package_list                       | package_list package
 package                            : package_init package_content package_close
 package_init                       : PACKAGE IDENTIFIER
 package_content                    : dependance_list packageable_element_list
@@ -159,8 +159,7 @@ def p_package_item(p):
     '''
     package : package_init package_content package_close
     '''
-    p[0]                     = p[1]
-    p.parser.current_package = p[0]
+    p[0] = p[1]
 
 def p_package_init(p):
     '''

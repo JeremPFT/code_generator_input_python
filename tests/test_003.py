@@ -43,7 +43,7 @@ class Test_Project_Nominal(unittest.TestCase):
     def test_field_title(self):
         self.assertEqual(Test_Project_Nominal.project._title,
                          "test 003 title",
-                         "bad project title")
+                         "project title")
 
     def test_field_brief(self):
         self.assertEqual(Test_Project_Nominal.project._brief,

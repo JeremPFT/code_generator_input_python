@@ -19,8 +19,14 @@ class Generator_Ada_Project():
         self.__project = None
 
     def output(self, project):
-        if project.__class__ != Project:
-            raise TypeError("Project instance expected")
+        print(str(project))
+
+        assert project != None and type(project) == Project, \
+            "not a Project instance: " + str(type(project))
+
+        if project == None:
+            print("project is null, error during parsing")
+            return
 
         self.__project = project
         self.__output_project()

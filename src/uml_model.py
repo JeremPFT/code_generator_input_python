@@ -62,7 +62,7 @@ class Project:
 
     def add_package(self, package_item):
         self._package_list.append(package_item)
-        package_item.project = self
+        # package_item.project = self
 
     def __str__(self):
         image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + os.linesep
@@ -97,6 +97,16 @@ class Element:
         self.owned_comment = []
         self.must_be_owned = must_be_owned
 
+    def add_owned_element(self, element):
+        assert element != None and type(element) == Element, \
+            "element has to be an Element instance"
+        self.owned_element.append(element)
+
+    def add_owned_comment(self, comment):
+        assert comment != None and type(comment) == Comment, \
+            "comment has to be an Comment instance"
+        self.owned_comment.append(comment)
+
     def all_owned_element(self):
         result = []
 
@@ -129,23 +139,23 @@ class Multiplicity(Element):
                  lower = 1,
                  upper = 1):
 
-        if type(is_ordered) != bool:
-            raise TypeError("is_ordered must be a boolean")
+        assert type(is_ordered) == bool, \
+            "is_ordered must be a boolean"
 
-        if type(is_ordered) != bool:
-            raise TypeError("is_ordered must be a boolean")
+        assert type(is_ordered) == bool, \
+            "is_ordered must be a boolean"
 
-        if lower != None and type(lower) != int:
-            raise TypeError("lower must be an integer")
+        assert lower == None or type(lower) == int, \
+            "lower must be an integer"
 
-        if lower != None and lower < 0:
-            raise ValueError("lower must be a integer positive")
+        assert lower == None or lower >= 0, \
+            "lower must be positive"
 
-        if upper != None and type(upper) != int:
-            raise TypeError("upper must be an integer")
+        assert upper == None or type(upper) == int, \
+            "upper must be an integer"
 
-        if upper != None and lower != None and upper < lower:
-            raise ValueError("upper must greater than lower")
+        assert upper == None or ( lower != None and upper >= lower ), \
+            "upper must greater than lower"
 
         self.is_ordered = is_ordered
         self.is_unique  = is_unique
@@ -154,17 +164,79 @@ class Multiplicity(Element):
 
 
 class Named_Element(Element):
-    def __init__(self, name):
+    '''
+    see UML 2.4.1 Infrastructure section 9.14.1
+
+    we ignore the possibility of no name or empty name
+    '''
+
+    def __init__(self, name, owner = None, must_be_owned = False):
+        print("Named_Element, owner: " + str(owner))
+
+        assert type(name) == str, \
+            "name has to be a string"
+        assert name != "", \
+            "name has to be a no empty string"
+        assert owner == None or Namespace in owner.__class__.__mro__, \
+            "owner has to be a Namespace"
+        assert type(must_be_owned) == bool, \
+            "must_be_owned has to be a Boolean"
+
+
+        super().__init__(owner = owner,
+                         must_be_owned = must_be_owned)
+
         self.name = name
 
-    def __str__(self):
-        return "super().__str__() '{self.name}'"
+        self.qualified_name = name
+        parent = self.owner
+        while parent != None:
+            self.qualified_name = parent.name + self.separator() + self.qualified_name
+            parent = parent.owner
 
+        if owner == None:
+            print("building {0} without owner".format(self))
+        else:
+            print("building {0} with owner = {1.name}".format(self, owner))
+
+    def __str__(self):
+        return super().__str__() + "{0.qualified_name!r}".format(self)
+
+    def separator(self):
+        'return separator used to form qualified name'
+        return "::"
+
+
+class VisibilityKind():
+    PUBLIC = 0
+    PRIVATE = 1
+    PROTECTED = 2
+    PACKAGE = 3
+
+    def __init__(self, value):
+        assert value == PUBLIC \
+            or value == PROTECTED \
+            or value == PRIVATE \
+            or value == PACKAGE, \
+            'unknown visibility: ' + str(value)
+
+        self.value
+
+    def __str__(self):
+        if self.value == PUBLIC:
+            return "+"
+        elif self.value == PRIVATE:
+            return "-"
+        elif self.value == PROTECTED:
+            return "#"
+        elif self.value == PACKAGE:
+            return "~"
 
 class Namespace(Named_Element):
-    def __init__(self, name):
-        super().__init__(name)
-        self._owned_member_list = []
+    def __init__(self, name, owner = None):
+        super().__init__(name, owner)
+        self._member = []
+        self._owned_member = []
 
     def find_element(self, name):
         for element in self._owned_member_list:
@@ -180,21 +252,20 @@ class Namespace(Named_Element):
         self._owned_member_list.append(member)
 
 
-
 class Package(Namespace):
     def __init__(self, name):
         super().__init__(name)
-        self.project = None
+        # self.project = None
 
     def __str__(self):
         image = super().__str__() + os.linesep
 
-        if self.project == None:
-            image += "no output file"
-        else:
-            image += "output file: %s" %  \
-            (self.project._output_directory \
-             + "/src/" + self.name + ".ads")
+        # if self.project == None:
+        #     image += "no output file"
+        # else:
+        #     image += "output file: %s" %  \
+        #     (self.project._output_directory \
+        #      + "/src/" + self.name + ".ads")
 
         image += os.linesep
 
@@ -547,3 +618,11 @@ class Dependance:
         image += self.imported_unit
 
         return image
+
+
+print("========================================")
+print("== TEST MODEL")
+nm_1 = Namespace("nm_1")
+nm_2 = Namespace(name = "nm_2", owner = nm_1)
+print(str(nm_1))
+print(str(nm_2))
