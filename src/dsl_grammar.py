@@ -98,7 +98,6 @@ def p_project_init(p):
     '''
     p[0] = Project(name = p[2])
     p.parser.current_project = p[0]
-    print(p[0])
 
 def p_project_init_unnamed(p):
     '''
@@ -243,10 +242,12 @@ def p_packageable_element_item(p):
     '''
     packageable_element : operation
                         | type_item
+                        | package_item
     '''
     p[0] = p[1]
 
-    p.parser.current_package.add_owned_member(p[0])
+    # TODO.
+    # add package_item, dependancy, constraint
 
 def p_type_item(p):
     '''
@@ -285,23 +286,45 @@ def p_exception_item(p):
 
 def p_value_object_item(p):
     '''
-    value_object : value_object_init value_object_content value_object_close
+    value_object : value_object_init class_attribute_list value_object_content value_object_close
     '''
     p[0] = p[1]
 
 def p_value_object_init(p):
     '''
-    value_object_init : value_object_init_abstract_inherit
-                      | value_object_init_abstract
-                      | value_object_init_inherit
-                      | value_object_init_simple
+    value_object_init : VALUE_OBJECT IDENTIFIER
     '''
     p[0] = p[1]
     parser.current_class = p[0]
 
+def p_class_attribute_list_empty(p):
+    '''
+    class_attribute_list :
+    '''
+
+def p_class_attribute_list(p):
+    '''
+    class_attributes : IS class_attribute_item
+    '''
+
+def p_class_attribute_item_abstract(p):
+    '''
+    class_attribute_item : ABSTRACT
+    '''
+    p.parser.current_class.is_abstract = True
+
+def p_class_attribute_item_inheritance(p):
+    '''
+    class_inheritance : NEW IDENTIFIER
+    '''
+    p.parser.current_class.parent = p[2]
+
+    # TODO allow qualified name for parent
+    # TODO allow multiple parents
+
 def p_value_object_init_abstract_inherit(p):
     '''
-    value_object_init_abstract_inherit : ABSTRACT VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
+    value_object_init_abstract_inherit : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
     '''
     is_abstract = True
     parent_name = p[5]

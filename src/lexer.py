@@ -8,8 +8,8 @@ reserved = {
     'exceptions'       : 'EXCEPTIONS',
     'field'            : 'FIELD',
     'implementation'   : 'IMPLEMENTATION',
-    'inout'            : 'INOUT',
     'in'               : 'IN',
+    'inout'            : 'INOUT',
     'is'               : 'IS',
     'limited'          : 'LIMITED',
     'operation'        : 'OPERATION',
@@ -21,22 +21,26 @@ reserved = {
     'pre'              : 'PRE',
     'project'          : 'PROJECT',
     'query'            : 'QUERY',
-    'return'           : 'RETURN',
-    'readme_title'     : 'README_TITLE',
     'readme_brief'     : 'README_BRIEF',
+    'readme_title'     : 'README_TITLE',
+    'return'           : 'RETURN',
     'subprogram'       : 'SUBPROGRAM',
+    'type'             : 'TYPE',
     'use'              : 'USE',
     'value_object'     : 'VALUE_OBJECT',
     'vector'           : 'VECTOR',
-    'type'             : 'TYPE',
     'with'             : 'WITH',
 }
 
 tokens = [
+    'DOUBLEPERIOD', # ! before period
+    'COLONEQ', # ! before colon, before equal
+] + [
+    'STAR',
     'LPAREN',
     'RPAREN',
     'SEMICOLON',
-    'COLONEQ',
+    'PERIOD',
     'COLON',
     'AMP',
     'IDENTIFIER',
@@ -51,8 +55,16 @@ tokens = [
 
 t_ignore  = ' \t'
 
+def t_STAR(t):
+    r'\*'
+    return t
+
 def t_LPAREN(t):
     r'\('
+    return t
+
+def t_DOUBLEPERIOD(t):
+    r'\.\.'
     return t
 
 def t_RPAREN(t):

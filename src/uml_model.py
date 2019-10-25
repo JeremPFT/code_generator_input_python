@@ -1,5 +1,6 @@
 import os
 import logging
+from string import Formatter
 
 from src.utils import (
     indent,
@@ -30,7 +31,7 @@ class Project:
         self._type             = ""
         self._title            = ""
         self._brief            = ""
-        self._package_list     = []
+        self._package     = []
 
     def output_directory(self):
         return self._output_directory
@@ -61,21 +62,19 @@ class Project:
         self._brief = brief.replace('"', '')
 
     def add_package(self, package_item):
-        self._package_list.append(package_item)
-        # package_item.project = self
+        self._package.append(package_item)
+        package_item.project = self
 
     def __str__(self):
-        image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + os.linesep
-        image += "in %s" % (self._output_directory) + os.linesep
-        image += "title {!r}".format(self._title) + os.linesep
-        image += "brief {!r}".format(self._brief) + os.linesep
+        image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + '\n'
+        image += "in %s" % (self._output_directory) + '\n'
+        image += "title {!r}".format(self._title) + '\n'
+        image += "brief {!r}".format(self._brief) + '\n'
         indent.incr()
-        j = 1
-        for package in self._package_list:
+        for package in self._package:
             image += indent.str() + str(package)
-            j += 1
-            if j <= len(self._package_list):
-                image += os.linesep
+            if package != self._package[-1]:
+                image += '\n'
         indent.decr()
         return image
 
@@ -117,20 +116,33 @@ class Element:
         return result
 
     def __str__(self):
-        return "<{" + self.__class__.__name__ + "}>"
+        return "<" + self.__class__.__name__ + ">"
+
 
 class Comment(Element):
     '''
     see UML 2.4.1 Infrastructure section 9.5
+    see UML 2.4.1 Suprastructure section 7.3.9
     '''
 
-    def __init__(self, annoted_element = []):
+    def __init__(self, body, annoted_element = []):
+        assert body != None and type(body) == str, \
+            "comment body has to be a string"
         super.__init__()
+        self.body = body
+        self.annoted_element = []
+        for element in annoted_element:
+            self.annoted_element.append(element)
+
+    def __str__(self):
+        return super().__str__ + " " + self.body
 
 
 class Multiplicity(Element):
     '''
     see UML 2.4.1 Infrastructure section 9.12
+
+    if lower and upper are undefined, it is considered as 0..n, or *
     '''
 
     def __init__(self,
@@ -145,14 +157,11 @@ class Multiplicity(Element):
         assert type(is_ordered) == bool, \
             "is_ordered must be a boolean"
 
-        assert lower == None or type(lower) == int, \
-            "lower must be an integer"
+        assert upper == None or upper > 0, \
+            "upper must be an integer > 0"
 
         assert lower == None or lower >= 0, \
-            "lower must be positive"
-
-        assert upper == None or type(upper) == int, \
-            "upper must be an integer"
+            "lower must be an integer >= 0"
 
         assert upper == None or ( lower != None and upper >= lower ), \
             "upper must greater than lower"
@@ -164,15 +173,14 @@ class Multiplicity(Element):
 
 
 class Named_Element(Element):
-    '''
-    see UML 2.4.1 Infrastructure section 9.14.1
+    '''see UML 2.4.1 Infrastructure section 9.14.1
 
-    we ignore the possibility of no name or empty name
+    NOTES
+    - the possibility of no name or empty name is ignored
+    - a named element is considered as a packageable element
     '''
 
     def __init__(self, name, owner = None, must_be_owned = False):
-        print("Named_Element, owner: " + str(owner))
-
         assert type(name) == str, \
             "name has to be a string"
         assert name != "", \
@@ -181,7 +189,6 @@ class Named_Element(Element):
             "owner has to be a Namespace"
         assert type(must_be_owned) == bool, \
             "must_be_owned has to be a Boolean"
-
 
         super().__init__(owner = owner,
                          must_be_owned = must_be_owned)
@@ -194,13 +201,17 @@ class Named_Element(Element):
             self.qualified_name = parent.name + self.separator() + self.qualified_name
             parent = parent.owner
 
-        if owner == None:
-            print("building {0} without owner".format(self))
-        else:
-            print("building {0} with owner = {1.name}".format(self, owner))
+        # if owner == None:
+        #     template = "building {self.__class__.__name__} " \
+        #         + "named {self.name!r} without owner"
+        #     print(template.format(self=self))
+        # else:
+        #     template = "building {self.__class__.__name__} " \
+        #         + "named {self.name} with owner {owner.name}"
+        #     print(template.format(self=self, owner=self.owner))
 
     def __str__(self):
-        return super().__str__() + "{0.qualified_name!r}".format(self)
+        return super().__str__() + " {0.qualified_name!r}".format(self)
 
     def separator(self):
         'return separator used to form qualified name'
@@ -232,14 +243,20 @@ class VisibilityKind():
         elif self.value == PACKAGE:
             return "~"
 
+
 class Namespace(Named_Element):
+    '''
+    see UML 2.4.1 Infrastructure section 9.14
+
+    ignoring member field (which include member imported or inherited)
+    '''
+
     def __init__(self, name, owner = None):
         super().__init__(name, owner)
-        self._member = []
         self._owned_member = []
 
     def find_element(self, name):
-        for element in self._owned_member_list:
+        for element in self._owned_member:
             if element.name == name:
                 return element
 
@@ -248,17 +265,18 @@ class Namespace(Named_Element):
     def add_owned_member(self, member):
         if member == None:
             raise Exception("member to add is None")
-
-        self._owned_member_list.append(member)
+        self._owned_member.append(member)
 
 
 class Package(Namespace):
-    def __init__(self, name):
-        super().__init__(name)
-        # self.project = None
+    def __init__(self, name, owner = None):
+        super().__init__(name, owner)
+
+        self.project = None
+
 
     def __str__(self):
-        image = super().__str__() + os.linesep
+        image = super().__str__()
 
         # if self.project == None:
         #     image += "no output file"
@@ -267,20 +285,65 @@ class Package(Namespace):
         #     (self.project._output_directory \
         #      + "/src/" + self.name + ".ads")
 
-        image += os.linesep
 
-        indent.incr()
+        if len(self._owned_member) > 0:
+            image += '\n'
+            indent.incr()
+            for element in self._owned_member:
+                image += indent.str() + str(element)
+                if element != self._owned_member[-1]:
+                    image += '\n'
+            indent.decr()
+        else:
+            image += " (no member)"
 
-        for element in self._owned_member_list:
-            image += indent.str() + str(element)
-
-            if element != self._owned_member_list[-1]:
-                image += os.linesep
-
-        indent.decr()
         return image
 
+
+class Type_Definition(Named_Element):
+    '''
+    see UML 2.4.1 Superstructure section 7.3.52 Type
+    '''
+    pass
+
+
+class Data_Type(Type_Definition):
+    '''
+    see UML 2.4.1 Superstructure section 7.3.11 DataType
+    '''
+    pass
+
+
+class Enumeration(Data_Type):
+    '''
+    see UML 2.4.1 Superstructure section 7.3.16 Enumeration
+    '''
+
+    def __init__(self, owned_literal = []):
+        super().__init__()
+        self._owned_literal = []
+        for literal in owned_literal:
+            self.add_owned_member(literal)
+            self._owned_literal.append(literal)
+
+    def __str__(self):
+        image = super().__str__() + " : "
+        for literal in self._owned_literal:
+            image += literal
+            if literal != self._owned_literal[-1]:
+                image += ", "
+
+
 class Class(Namespace):
+    '''
+    see UML 2.4.1 Infrastructure section 9.14
+    see UML 2.4.1 Superstructure section 7.3.7 Class
+    see UML 2.4.1 Superstructure section 7.3.20 Generalization
+
+
+    TODO class is a type or a namespace ?
+
+    '''
     def __init__(self, name, owner, parent_name = None, is_abstract = False):
         super().__init__(name)
 
@@ -321,7 +384,7 @@ class Class(Namespace):
             image += indent.str() + str(element)
             j += 1
             if j <= len(self._dependance_list):
-                image += os.linesep
+                image += '\n'
         indent.decr()
         return image
 
@@ -336,7 +399,7 @@ class Class(Namespace):
             image += indent.str() + str(element)
             j += 1
             if j <= len(self._property_list):
-                image += os.linesep
+                image += '\n'
         indent.decr()
         return image
 
@@ -348,13 +411,13 @@ class Class(Namespace):
             image += indent.str() + str(element)
             j += 1
             if j <= len(self._operation_list):
-                image += os.linesep
+                image += '\n'
         indent.decr()
         return image
 
     def __str__(self):
 
-        image = "-" * 50 + os.linesep + indent.str() + super().__str__()
+        image = "-" * 50 + '\n' + indent.str() + super().__str__()
 
         if self._parent != None:
             image += " extends %s" % (self._parent)
@@ -362,13 +425,13 @@ class Class(Namespace):
         if self._is_abstract:
             image += " is abstract"
 
-        image += os.linesep
+        image += '\n'
         image += self.__dependance_list_image()
         if len(self._dependance_list) > 0:
-            image += os.linesep
+            image += '\n'
         image += self.__property_list_image()
         if len(self._property_list) > 0 and len(self._operation_list) > 0:
-            image += os.linesep
+            image += '\n'
         image += self.__operation_list_image()
 
         return image
@@ -425,7 +488,7 @@ class Operation(Named_Element):
         for param in self._parameter_list:
             image += indent.str() + str(param)
             if param != self._parameter_list[-1]:
-                image += os.linesep
+                image += '\n'
 
         indent.decr()
         return image
@@ -436,7 +499,7 @@ class Operation(Named_Element):
         image += self.__return_image()
 
         if len(self._parameter_list) > 0:
-            image += os.linesep
+            image += '\n'
 
         image += self.__parameters_image()
 
@@ -618,11 +681,3 @@ class Dependance:
         image += self.imported_unit
 
         return image
-
-
-print("========================================")
-print("== TEST MODEL")
-nm_1 = Namespace("nm_1")
-nm_2 = Namespace(name = "nm_2", owner = nm_1)
-print(str(nm_1))
-print(str(nm_2))

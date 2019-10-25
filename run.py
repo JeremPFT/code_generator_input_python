@@ -26,8 +26,8 @@ import unittest
 
 
 
-from tests.test_001 import Test_Project_Nominal
-from tests.test_002 import Test_Unnamed_Project
+# from tests.test_001 import Test_Project_Nominal
+# from tests.test_002 import Test_Unnamed_Project
 from tests.test_003 import Test_Project_Nominal
 
 unittest.main()
