@@ -12,6 +12,7 @@ reserved = {
     'inout'            : 'INOUT',
     'is'               : 'IS',
     'limited'          : 'LIMITED',
+    'new'              : 'NEW',
     'operation'        : 'OPERATION',
     'or'               : 'OR',
     'out'              : 'OUT',
@@ -137,7 +138,10 @@ def find_column(input, token):
     return (token.lexpos - line_start) + 1
 
 lexer = lex.lex(debug = False)
-lexer.lineno = 1
+
+def reset_lexer():
+    global lexer
+    lexer.lineno = 1
 
 # def build_lexer():
 #     return lex.lex(debug = False)

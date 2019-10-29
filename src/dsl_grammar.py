@@ -6,6 +6,7 @@ import ply.yacc as yacc
 from src.lexer import (
     tokens,
     find_column,
+    reset_lexer
 )
 
 from src.uml_model import *
@@ -94,36 +95,44 @@ def p_project_item(p):
 
 def p_project_init(p):
     '''
-    project_init : PROJECT IDENTIFIER
+    project_init : PROJECT IDENTIFIER output_directory project_type readme_content
     '''
-    p[0] = Project(name = p[2])
+    p[0] = Project(name = p[2],
+                   output_directory = p[3],
+                   type = p[4],
+                   title = p[5][0],
+                   brief = p[5][1],
+    )
     p.parser.current_project = p[0]
 
 def p_project_init_unnamed(p):
     '''
-    project_init : PROJECT
+    project_init : PROJECT unnamed_project output_directory project_type readme_content
     '''
-    message = "ERROR unnamed project line {}".format(p.lineno(1))
+    print("p_project_init_unnamed")
+    message = "ERROR unnamed project line {}".format(p.lineno(2))
     p.parser.log.fatal(message)
     raise NoNameError(message)
 
-def p_project_content(p):
+def p_unnamed_project(p):
     '''
-    project_content : output_directory project_type readme_content package_list
+    unnamed_project :
     '''
-    p.parser.current_project.set_output_directory(p[1])
-    p.parser.current_project.set_type(p[2])
-    p.parser.current_project.set_title(p[3][0])
-    p.parser.current_project.set_brief(p[3][1])
-
-    for package_item in p[4]:
-        p.parser.current_project.add_package(package_item)
+    p[0] = p.lineno(0)
 
 def p_readme_content(p):
     '''
     readme_content : README_TITLE string README_BRIEF string
     '''
     p[0] = (p[2], p[4])
+
+def p_project_content(p):
+    '''
+    project_content : package_list
+    '''
+
+    for package_item in p[1]:
+        p.parser.current_project.add_package(package_item)
 
 def p_project_close_with_name(p):
     '''
@@ -149,14 +158,14 @@ def p_package_list_empty(p):
 
 def p_package_list_more(p):
     '''
-    package_list : package_list package
+    package_list : package_list package_item
     '''
     p[1].append(p[2])
     p[0] = p[1]
 
 def p_package_item(p):
     '''
-    package : package_init package_content package_close
+    package_item : package_init package_content package_close
     '''
     p[0] = p[1]
 
@@ -286,7 +295,10 @@ def p_exception_item(p):
 
 def p_value_object_item(p):
     '''
-    value_object : value_object_init class_attribute_list value_object_content value_object_close
+    value_object : value_object_init \
+                   class_attribute_list \
+                   value_object_content \
+                   value_object_close
     '''
     p[0] = p[1]
 
@@ -302,9 +314,9 @@ def p_class_attribute_list_empty(p):
     class_attribute_list :
     '''
 
-def p_class_attribute_list(p):
+def p_class_attribute_list_more(p):
     '''
-    class_attributes : IS class_attribute_item
+    class_attribute_list : IS class_attribute_item
     '''
 
 def p_class_attribute_item_abstract(p):
@@ -315,55 +327,12 @@ def p_class_attribute_item_abstract(p):
 
 def p_class_attribute_item_inheritance(p):
     '''
-    class_inheritance : NEW IDENTIFIER
+    class_attribute_item : NEW IDENTIFIER
     '''
     p.parser.current_class.parent = p[2]
 
     # TODO allow qualified name for parent
     # TODO allow multiple parents
-
-def p_value_object_init_abstract_inherit(p):
-    '''
-    value_object_init_abstract_inherit : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
-    '''
-    is_abstract = True
-    parent_name = p[5]
-    name        = p[3]
-
-    p[0] = Class(name        = name,
-                 owner       = p.parser.current_package,
-                 is_abstract = is_abstract,
-                 parent_name = parent_name)
-
-def p_value_object_init_abstract(p):
-    '''
-    value_object_init_abstract : ABSTRACT VALUE_OBJECT IDENTIFIER
-    '''
-    is_abstract = True
-    name        = p[3]
-
-    p[0] = Class(name        = name,
-                 owner       = p.parser.current_package,
-                 is_abstract = is_abstract)
-
-def p_value_object_init_inherit(p):
-    '''
-    value_object_init_inherit : VALUE_OBJECT IDENTIFIER LPAREN IDENTIFIER RPAREN
-    '''
-    parent_name = p[4]
-    name        = p[2]
-
-    p[0] = Class(name        = name,
-                 owner       = p.parser.current_package,
-                 parent_name = parent_name)
-
-def p_value_object_init_simple(p):
-    '''
-    value_object_init_simple : VALUE_OBJECT IDENTIFIER
-    '''
-    name = p[2]
-    p[0] = Class(name  = name,
-                 owner = p.parser.current_package)
 
 def p_value_object_content(p):
     '''
@@ -551,7 +520,7 @@ def p_project_type(p):
     '''
     prj_type = p[2]
 
-    if not prj_type in Project.TYPES:
+    if not prj_type in Project_Types.VALUES:
         print("!! SyntaxError: project type {!r} undefined line {}".format(prj_type, p.lineno(1)))
         raise SyntaxError
 
@@ -607,6 +576,8 @@ def parse_input(input_path):
 
     logging.basicConfig(level=logging.DEBUG)
     parser.log = logging.getLogger(__name__)
+
+    reset_lexer()
 
     input_file_name = directory(input_path)
     input_file = open(input_file_name, "r")

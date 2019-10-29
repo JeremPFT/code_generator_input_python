@@ -1,6 +1,8 @@
+from typing import List
 import os
 import logging
 from string import Formatter
+from dataclasses import dataclass, field
 
 from src.utils import (
     indent,
@@ -11,71 +13,102 @@ class NoNameError(Exception):
     pass
 
 
-class Project:
+def assert_no_empty_string(value):
+    assert type(value) == str, \
+        "given value is not a string {!r}".format(value)
+    assert value != "", \
+        "given string is empty"
+
+
+def build_component_image(components):
+    image = ""
+    indent.incr()
+    for component in components:
+        image += indent.str() + str(component)
+        if component != components[-1]:
+            image += '\n'
+    indent.decr()
+    return image
+
+
+class Project_Types:
     TYPE_STATIC_LIB = "static_library"
     TYPE_EXEC       = "executable"
     TYPE_TEST       = "test"
 
-    TYPES = [TYPE_STATIC_LIB, TYPE_EXEC, TYPE_TEST]
+    VALUES = [TYPE_STATIC_LIB, TYPE_EXEC, TYPE_TEST]
 
-    def __init__(self, name):
-        logging.basicConfig(level=logging.DEBUG)
+    @staticmethod
+    def is_valid(type):
+        return type in Project_Types.VALUES
+
+
+class Project:
+
+    def __init__(self, name, output_directory, type, title, brief):
+
         self.log = logging.getLogger(__name__)
+        self.log.setLevel("DEBUG")
 
-        assert type(name) == str, \
-            "name is not a string {name!r}"
-        assert name != "", "name is empty"
+        self.__set_name(name)
+        self.__set_output_directory(output_directory)
+        self.__set_type(type)
+        self.__set_title(title)
+        self.__set_brief(brief)
 
-        self.name              = name
-        self._output_directory = ""
-        self._type             = ""
-        self._title            = ""
-        self._brief            = ""
-        self._package     = []
+        self.__package = []
 
+    @property
+    def name(self):
+        return self.__name
+
+    def __set_name(self, name):
+        assert_no_empty_string(name)
+        self.__name = name
+
+    @property
     def output_directory(self):
-        return self._output_directory
+        return self.__output_directory
 
-    def set_output_directory(self, output_directory):
-        assert type(output_directory) == str, \
-            "output directory has to be a string"
-
+    def __set_output_directory(self, output_directory):
+        assert_no_empty_string(output_directory)
         dir = output_directory.replace('"', '')
-        self._output_directory = directory(dir)
+        self.__output_directory = directory(dir)
 
-    def set_type(self, prj_type):
-        assert prj_type in Project.TYPES, \
+    @property
+    def type(self):
+        return self.__type
+
+    def __set_type(self, type):
+        assert Project_Types.is_valid(type), \
             "unknown project type: " + prj_type
+        self.__type = type
 
-        self._type = prj_type
+    @property
+    def title(self):
+        return self.__title
 
-    def set_title(self, title):
-        assert type(title) == str, \
-            "title has to be a string"
+    def __set_title(self, title):
+        assert_no_empty_string(title)
+        self.__title = title.replace('"', '')
 
-        self._title = title.replace('"', '')
+    @property
+    def brief(self):
+        return self.__brief
 
-    def set_brief(self, brief):
-        if type(brief) != str:
-            raise Exception("brief has to be a string")
-
-        self._brief = brief.replace('"', '')
+    def __set_brief(self, brief):
+        assert_no_empty_string(brief)
+        self.__brief = brief.replace('"', '')
 
     def add_package(self, package_item):
-        self._package.append(package_item)
-        package_item.project = self
+        self.__package.append(package_item)
 
     def __str__(self):
         image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + '\n'
-        image += "in %s" % (self._output_directory) + '\n'
-        image += "title {!r}".format(self._title) + '\n'
-        image += "brief {!r}".format(self._brief) + '\n'
-        indent.incr()
-        for package in self._package:
-            image += indent.str() + str(package)
-            if package != self._package[-1]:
-                image += '\n'
-        indent.decr()
+        image += "in %s" % (self.output_directory) + '\n'
+        image += "title {!r}".format(self.title) + '\n'
+        image += "brief {!r}".format(self.brief) + '\n'
+        image += build_component_image(self.__package)
         return image
 
 
@@ -288,12 +321,7 @@ class Package(Namespace):
 
         if len(self._owned_member) > 0:
             image += '\n'
-            indent.incr()
-            for element in self._owned_member:
-                image += indent.str() + str(element)
-                if element != self._owned_member[-1]:
-                    image += '\n'
-            indent.decr()
+            image += build_component_image(self._owned_member)
         else:
             image += " (no member)"
 
@@ -378,41 +406,17 @@ class Class(Namespace):
 
     def __dependance_list_image(self):
         image = ""
-        indent.incr()
-        j = 1
-        for element in self._dependance_list:
-            image += indent.str() + str(element)
-            j += 1
-            if j <= len(self._dependance_list):
-                image += '\n'
-        indent.decr()
+        image += build_component_image(self._dependance_list)
         return image
 
     def __property_list_image(self):
         image = ""
-        indent.incr()
-        j = 1
-        for element in self._property_list:
-            # if self._parent != None and element in self._parent.property_list:
-            #     pass
-            # else:
-            image += indent.str() + str(element)
-            j += 1
-            if j <= len(self._property_list):
-                image += '\n'
-        indent.decr()
+        image += build_component_image(self._property_list)
         return image
 
     def __operation_list_image(self):
         image = ""
-        indent.incr()
-        j = 1
-        for element in self._operation_list:
-            image += indent.str() + str(element)
-            j += 1
-            if j <= len(self._operation_list):
-                image += '\n'
-        indent.decr()
+        image += build_component_image(self._operation_list)
         return image
 
     def __str__(self):
@@ -477,22 +481,6 @@ class Operation(Named_Element):
 
         return image
 
-    def __parameters_image(self):
-        image = ""
-
-        if len(self._parameter_list) == 0:
-            return image
-
-        indent.incr()
-
-        for param in self._parameter_list:
-            image += indent.str() + str(param)
-            if param != self._parameter_list[-1]:
-                image += '\n'
-
-        indent.decr()
-        return image
-
     def __str__(self):
         image = super().__str__()
 
@@ -501,7 +489,7 @@ class Operation(Named_Element):
         if len(self._parameter_list) > 0:
             image += '\n'
 
-        image += self.__parameters_image()
+        image += build_component_image(self._parameter_list)
 
         return image
 

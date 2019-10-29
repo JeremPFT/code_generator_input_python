@@ -34,3 +34,6 @@ class Test_Unnamed_Project(unittest.TestCase):
     #     input_file_name = "tests/test_002/test_002.dsl"
     #     project = parse_input(input_file_name)
     #     assert (False)
+
+if __name__ == "__main__":
+    unittest.main()
