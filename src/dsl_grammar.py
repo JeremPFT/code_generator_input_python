@@ -78,10 +78,11 @@ string                             : string AMP STRING_VALUE
 string                             : STRING_VALUE
 '''
 
-def check_closing_name(p, class_name):
-    if p[3] != p[-2].name:
-        print("WARNING closed %s %s is not opened %s %s" % \
-              (class_name, p[3], class_name, p[-2].name))
+def check_closing_name(got, instance):
+    if got != instance.name:
+        msg = "WARNING closed {!r} {!r} doesn't match opened {!r}"
+        msg = msg.format(instance.__class__.__name__, got, instance.name)
+        print(msg)
 
 #
 # - project
@@ -138,7 +139,8 @@ def p_project_close_with_name(p):
     '''
     project_close : END PROJECT IDENTIFIER SEMICOLON
     '''
-    check_closing_name(p, "project")
+    name = p[3]
+    check_closing_name(got = name, instance = p.parser.current_project)
 
 def p_project_close(p):
     '''
@@ -187,7 +189,8 @@ def p_package_close_with_name(p):
     '''
     package_close : END PACKAGE IDENTIFIER SEMICOLON
     '''
-    check_closing_name(p, "package")
+    name = p[3]
+    check_closing_name(got = name, instance = p.parser.current_package)
 
 def p_package_close(p):
     '''
@@ -295,24 +298,45 @@ def p_exception_item(p):
 
 def p_value_object_item(p):
     '''
-    value_object : value_object_init \
+    value_object : value_object_init    \
                    class_attribute_list \
+                   dependance_list      \
                    value_object_content \
                    value_object_close
     '''
-    p[0] = p[1]
+    vo, attr, dependance, feature = p[1], p[2], p[3], p[4]
+
+    vo.is_abstract = attr["is_abstract"]
+
+    for item in attr["super_class"]:
+        vo.add_super_class(item)
+
+    for item in dependance:
+        vo.add_dependance(item)
+
+    if feature != None:
+        for item in feature:
+            vo.add_feature(item)
+
+    p[0] = vo
 
 def p_value_object_init(p):
     '''
     value_object_init : VALUE_OBJECT IDENTIFIER
     '''
-    p[0] = p[1]
-    parser.current_class = p[0]
+    name = p[2]
+    result = Class(name = name, owner = p.parser.current_package)
+
+    p.parser.current_class = result
+
+    p[0] = result
+
 
 def p_class_attribute_list_empty(p):
     '''
     class_attribute_list :
     '''
+    p[0] = { "is_abstract": False, "super_class": [] }
 
 def p_class_attribute_list_more(p):
     '''
@@ -336,21 +360,23 @@ def p_class_attribute_item_inheritance(p):
 
 def p_value_object_content(p):
     '''
-    value_object_content : dependance_list feature_list
+    value_object_content : feature_list
     '''
-    p[-1].dependance_list = p[1]
 
-    for feature in p[2]:
-        if feature.__class__.__name__ == Property.__name__:
-            p[-1].add_property(feature)
-        elif feature.__class__.__name__ == Operation.__name__:
-            p[-1].add_operation(feature)
+    feature = p[1]
+
+    for item in feature:
+        if item.__class__.__name__ == Property.__name__:
+            p[-1].add_property(item)
+        elif item.__class__.__name__ == Operation.__name__:
+            p[-1].add_operation(item)
 
 def p_value_object_close_with_name(p):
     '''
     value_object_close : END VALUE_OBJECT IDENTIFIER SEMICOLON
     '''
-    check_closing_name(p, "value_object")
+    name = p[3]
+    check_closing_name(got = name, instance = p.parser.current_class)
 
 def p_value_object_close(p):
     '''
@@ -370,15 +396,15 @@ def p_feature_list_none(p):
 
 def p_feature_list_more(p):
     '''
-    feature_list : feature_list feature
+    feature_list : feature_list feature_item
     '''
     p[1].append(p[2])
     p[0] = p[1]
 
 def p_feature_item(p):
     '''
-    feature : property SEMICOLON
-            | operation SEMICOLON
+    feature_item : property SEMICOLON
+                 | operation SEMICOLON
     '''
     p[0] = p[1]
 

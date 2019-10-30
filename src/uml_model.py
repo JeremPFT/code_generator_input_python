@@ -19,13 +19,20 @@ def assert_no_empty_string(value):
     assert value != "", \
         "given string is empty"
 
+def assert_type(value, type):
+    msg = "given value is not a {!s}: {!r} is {!s}".format(type, value, type(value))
 
-def build_component_image(components):
+    if type.__name__ == "bool":
+        assert value == False or value == True, msg
+    else:
+        assert type(value) == type, msg
+
+def build_list_image(list):
     image = ""
     indent.incr()
-    for component in components:
-        image += indent.str() + str(component)
-        if component != components[-1]:
+    for item in list:
+        image += indent.str() + str(item)
+        if item != list[-1]:
             image += '\n'
     indent.decr()
     return image
@@ -42,13 +49,14 @@ class Project_Types:
     def is_valid(type):
         return type in Project_Types.VALUES
 
-
 class Project:
 
     def __init__(self, name, output_directory, type, title, brief):
 
-        self.log = logging.getLogger(__name__)
+        self.log = logging.getLogger(__name__ + ":" + __class__.__name__)
         self.log.setLevel("DEBUG")
+
+        self.log.info("initialize project with\n" + str(vars()))
 
         self.__set_name(name)
         self.__set_output_directory(output_directory)
@@ -103,12 +111,16 @@ class Project:
     def add_package(self, package_item):
         self.__package.append(package_item)
 
+    @property
+    def package(self):
+        return self.__package
+
     def __str__(self):
         image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + '\n'
         image += "in %s" % (self.output_directory) + '\n'
         image += "title {!r}".format(self.title) + '\n'
         image += "brief {!r}".format(self.brief) + '\n'
-        image += build_component_image(self.__package)
+        image += build_list_image(self.__package)
         return image
 
 
@@ -118,16 +130,38 @@ class Element:
     '''
 
     def __init__(self, owner = None, must_be_owned = False):
+        self.log = logging.getLogger(__name__ + ":" + __class__.__name__)
+        self.log.setLevel("DEBUG")
+
+        self.log.info("initialize project with\n" + str(vars()))
+
+        self.__owner         = None
+        self.__owned_element = []
+        self.__owned_comment = []
+        self.__must_be_owned = False
+
+        self.__set_owner(owner)
+        self.__set_must_be_owned(must_be_owned)
+
+
+    def __set_owner(self, owner):
         if owner == self:
             raise ValueError("an element can not own itself")
+        self.__owner = owner
+
+    @property
+    def owner(self):
+        return self.__owner
+
+    def __set_must_be_owned(self, must_be_owned):
+        assert_type(True, bool)
 
         if must_be_owned and (owner == None):
             raise ValueError("the element must be owned")
 
-        self.owner         = owner
-        self.owned_element = []
-        self.owned_comment = []
-        self.must_be_owned = must_be_owned
+    @property
+    def must_be_owned(self):
+        return self.__must_be_owned
 
     def add_owned_element(self, element):
         assert element != None and type(element) == Element, \
@@ -303,6 +337,11 @@ class Namespace(Named_Element):
 
 class Package(Namespace):
     def __init__(self, name, owner = None):
+        self.log = logging.getLogger(__name__ + ":" + __class__.__name__)
+        self.log.setLevel("DEBUG")
+
+        self.log.info("initialize project with\n" + str(vars()))
+
         super().__init__(name, owner)
 
         self.project = None
@@ -321,7 +360,7 @@ class Package(Namespace):
 
         if len(self._owned_member) > 0:
             image += '\n'
-            image += build_component_image(self._owned_member)
+            image += build_list_image(self._owned_member)
         else:
             image += " (no member)"
 
@@ -368,12 +407,10 @@ class Class(Namespace):
     see UML 2.4.1 Superstructure section 7.3.7 Class
     see UML 2.4.1 Superstructure section 7.3.20 Generalization
 
-
     TODO class is a type or a namespace ?
-
     '''
-    def __init__(self, name, owner, parent_name = None, is_abstract = False):
-        super().__init__(name)
+    def __init__(self, name, owner, super_class_name = [], is_abstract = False):
+        super().__init__(name, owner)
 
         self._is_abstract     = is_abstract
         self._dependance_list = []
@@ -381,16 +418,17 @@ class Class(Namespace):
         self._property_list   = []
         self._owner           = owner
 
-        self._parent = None
+        self.__super_class      = []
+        self.__super_class_name = []
 
-        if parent_name != None:
-            if type(parent_name) != str:
-                raise Exception("parent_name has to be a string")
+        if len(super_class_name) > 0:
+            if type(super_class_name) != str:
+                raise Exception("super_class_name has to be a string")
             else:
-                parent = owner.find_element(parent_name)
-                if parent == None:
-                    raise Exception("parent '%s' of '%s' not found in '%s'"
-                                    % (parent_name, self.name, owner.name))
+                super_class = owner.find_element(super_class_name)
+                if super_class == None:
+                    raise Exception("super_class '%s' of '%s' not found in '%s'"
+                                    % (super_class_name, self.name, owner.name))
 
     def add_property(self, property_item):
         self._property_list.append(property_item)
@@ -406,25 +444,25 @@ class Class(Namespace):
 
     def __dependance_list_image(self):
         image = ""
-        image += build_component_image(self._dependance_list)
+        image += build_list_image(self._dependance_list)
         return image
 
     def __property_list_image(self):
         image = ""
-        image += build_component_image(self._property_list)
+        image += build_list_image(self._property_list)
         return image
 
     def __operation_list_image(self):
         image = ""
-        image += build_component_image(self._operation_list)
+        image += build_list_image(self._operation_list)
         return image
 
     def __str__(self):
 
         image = "-" * 50 + '\n' + indent.str() + super().__str__()
 
-        if self._parent != None:
-            image += " extends %s" % (self._parent)
+        if self._super_class != None:
+            image += " extends %s" % (self._super_class)
 
         if self._is_abstract:
             image += " is abstract"
@@ -489,7 +527,7 @@ class Operation(Named_Element):
         if len(self._parameter_list) > 0:
             image += '\n'
 
-        image += build_component_image(self._parameter_list)
+        image += build_list_image(self._parameter_list)
 
         return image
 
