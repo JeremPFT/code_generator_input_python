@@ -82,3 +82,28 @@ def text_files_match(expected, obtained):
         return True
     else:
         return False
+
+def assert_no_empty_string(value):
+    assert type(value) == str, \
+        "given value is not a string {!r}".format(value)
+    assert value != "", \
+        "given string is empty"
+
+def assert_type(value, type):
+    msg = "given value is not a {!s}: {!r} is {!s}"
+    msg = msg.format(type, value, type(value))
+
+    if type.__name__ == "bool":
+        assert value == False or value == True, msg
+    else:
+        assert type(value) == type, msg
+
+def build_list_image(list):
+    image = ""
+    indent.incr()
+    for item in list:
+        image += indent.str() + str(item)
+        if item != list[-1]:
+            image += '\n'
+    indent.decr()
+    return image

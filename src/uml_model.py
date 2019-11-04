@@ -7,35 +7,14 @@ from dataclasses import dataclass, field
 from src.utils import (
     indent,
     directory,
+    assert_no_empty_string,
+    assert_type,
+    build_list_image,
 )
+
 
 class NoNameError(Exception):
     pass
-
-
-def assert_no_empty_string(value):
-    assert type(value) == str, \
-        "given value is not a string {!r}".format(value)
-    assert value != "", \
-        "given string is empty"
-
-def assert_type(value, type):
-    msg = "given value is not a {!s}: {!r} is {!s}".format(type, value, type(value))
-
-    if type.__name__ == "bool":
-        assert value == False or value == True, msg
-    else:
-        assert type(value) == type, msg
-
-def build_list_image(list):
-    image = ""
-    indent.incr()
-    for item in list:
-        image += indent.str() + str(item)
-        if item != list[-1]:
-            image += '\n'
-    indent.decr()
-    return image
 
 
 class Project_Types:
@@ -144,24 +123,24 @@ class Element:
         self.__set_must_be_owned(must_be_owned)
 
 
+    @property
+    def owner(self):
+        return self.__owner
+
     def __set_owner(self, owner):
         if owner == self:
             raise ValueError("an element can not own itself")
         self.__owner = owner
 
     @property
-    def owner(self):
-        return self.__owner
+    def must_be_owned(self):
+        return self.__must_be_owned
 
     def __set_must_be_owned(self, must_be_owned):
-        assert_type(True, bool)
+        assert_type(must_be_owned, bool)
 
         if must_be_owned and (owner == None):
             raise ValueError("the element must be owned")
-
-    @property
-    def must_be_owned(self):
-        return self.__must_be_owned
 
     def add_owned_element(self, element):
         assert element != None and type(element) == Element, \
@@ -193,13 +172,29 @@ class Comment(Element):
     '''
 
     def __init__(self, body, annoted_element = []):
-        assert body != None and type(body) == str, \
-            "comment body has to be a string"
         super.__init__()
-        self.body = body
-        self.annoted_element = []
+
+        self.__body = body
+        self.__annoted_element = []
+
         for element in annoted_element:
-            self.annoted_element.append(element)
+            self.add_annoted_element(element)
+
+    @property
+    def body(self):
+        return self.__body
+
+    def __set_body(self, body):
+        assert_no_empty_string(body)
+        self.__body = body
+
+    @property
+    def annoted_element(self):
+        return self.__annoted_element
+
+    def add_annoted_element(annoted_element):
+        assert_type(annoted_element, Element)
+        self.__annoted_element.append(annoted_element)
 
     def __str__(self):
         return super().__str__ + " " + self.body
@@ -218,25 +213,62 @@ class Multiplicity(Element):
                  lower = 1,
                  upper = 1):
 
-        assert type(is_ordered) == bool, \
-            "is_ordered must be a boolean"
+        self.__is_ordered = False
+        self.__is_unique = True
+        self.__is_lower = 1
+        self.__is_upper = 1
 
-        assert type(is_ordered) == bool, \
-            "is_ordered must be a boolean"
+        self.__set_is_ordered(is_ordered)
+        self.__set_is_unique(is_unique)
+        self.__set_lower(lower)
+        self.__set_upper(upper)
 
-        assert upper == None or upper > 0, \
-            "upper must be an integer > 0"
+        # assert type(is_ordered) == bool, \
+        #     "is_ordered must be a boolean"
 
-        assert lower == None or lower >= 0, \
-            "lower must be an integer >= 0"
+        # assert type(is_ordered) == bool, \
+        #     "is_ordered must be a boolean"
 
-        assert upper == None or ( lower != None and upper >= lower ), \
-            "upper must greater than lower"
+        # assert upper == None or upper > 0, \
+        #     "upper must be an integer > 0"
 
-        self.is_ordered = is_ordered
-        self.is_unique  = is_unique
-        self.lower      = lower
-        self.upper      = upper
+        # assert lower == None or lower >= 0, \
+        #     "lower must be an integer >= 0"
+
+        # assert upper == None or ( lower != None and upper >= lower ), \
+        #     "upper must greater than lower"
+
+    @property
+    def is_ordered(self):
+        return self.__is_ordered
+
+    def __set_is_ordered(self, is_ordered):
+        assert_type(is_ordered, True)
+        self.__is_ordered = is_ordered
+
+    @property
+    def is_unique(self):
+        return self.__is_unique
+
+    def __set_is_unique(self, is_unique):
+        assert_type(is_unique, True)
+        self.__is_unique = is_unique
+
+    @property
+    def lower(self):
+        return self.__lower
+
+    def __set_lower(self, lower):
+        if lower != None: assert_type(lower, int)
+        self.__lower = lower
+
+    @property
+    def lower(self):
+        return self.__lower
+
+    def __set_lower(self, lower):
+        if lower != None: assert_type(lower, int)
+        self.__lower = lower
 
 
 class Named_Element(Element):
@@ -247,26 +279,18 @@ class Named_Element(Element):
     - a named element is considered as a packageable element
     '''
 
-    def __init__(self, name, owner = None, must_be_owned = False):
-        assert type(name) == str, \
-            "name has to be a string"
-        assert name != "", \
-            "name has to be a no empty string"
-        assert owner == None or Namespace in owner.__class__.__mro__, \
-            "owner has to be a Namespace"
-        assert type(must_be_owned) == bool, \
-            "must_be_owned has to be a Boolean"
+    def separator(Cls):
+        'return separator used to form qualified name'
+        return "::"
 
+    def __init__(self, name, owner = None, must_be_owned = False):
         super().__init__(owner = owner,
                          must_be_owned = must_be_owned)
 
-        self.name = name
+        self.__set_name(name)
+        self.__set_owner(owner)
 
-        self.qualified_name = name
-        parent = self.owner
-        while parent != None:
-            self.qualified_name = parent.name + self.separator() + self.qualified_name
-            parent = parent.owner
+        self.__set_qualified_name()
 
         # if owner == None:
         #     template = "building {self.__class__.__name__} " \
@@ -277,12 +301,46 @@ class Named_Element(Element):
         #         + "named {self.name} with owner {owner.name}"
         #     print(template.format(self=self, owner=self.owner))
 
+    @property
+    def name(self):
+        return self.__name
+
+    def __set_name(self, name):
+        assert_no_empty_string(name, int)
+        self.__name = name
+
+    @property
+    def owner(self):
+        return self.__owner
+
+    def __set_owner(self, owner):
+        if owner != None: assert_type(owner, Namespace)
+        self.__owner = owner
+
+    @property
+    def must_be_owned(self):
+        return self.__must_be_owned
+
+    def __set_must_be_owned(self, must_be_owned):
+        assert_type(must_be_owned, bool)
+        self.__must_be_owned = must_be_owned
+
+    @property
+    def qualified_name(self):
+        return self.__qualified_name
+
+    def __set_qualified_name(self):
+        self.__qualified_name = name
+        parent = self.owner
+        while parent != None:
+            self.qualified_name += parent.name
+            self.qualified_name += Named_Element.separator
+            self.qualified_name += self.qualified_name
+            parent = parent.owner
+
+
     def __str__(self):
         return super().__str__() + " {0.qualified_name!r}".format(self)
-
-    def separator(self):
-        'return separator used to form qualified name'
-        return "::"
 
 
 class VisibilityKind():
