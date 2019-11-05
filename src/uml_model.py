@@ -1,7 +1,6 @@
 from typing import List
 import os
 import logging
-from string import Formatter
 from dataclasses import dataclass, field
 
 from src.utils import (
@@ -95,7 +94,13 @@ class Project:
         return self.__package
 
     def __str__(self):
-        image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + '\n'
+        values = {
+            "class_name" : self.__class__.__name__,
+            "name"       : self.name,
+        }
+
+        # image  = "<{self.__class__.__name__}> {self.name!r}".format(self=self) + '\n'
+        image  = "<{class_name}> {name!r}".format(**values) + '\n'
         image += "in %s" % (self.output_directory) + '\n'
         image += "title {!r}".format(self.title) + '\n'
         image += "brief {!r}".format(self.brief) + '\n'
@@ -491,29 +496,21 @@ class Class(Namespace):
     def add_property(self, property_item):
         self._property_list.append(property_item)
 
-        if property_item.of_type.endswith("_vector"):
-            self.add_operation(Operation.create_vector_count(property_item))
-            self.add_operation(Operation.create_vector_get_by_index(property_item))
-            self.add_operation(Operation.create_vector_has_item(property_item))
-            self.add_operation(Operation.create_vector_add_item(property_item))
+        # TODO
+        # following code should be in the generator, not the model
+        #
+        # if property_item.of_type.endswith("_vector"):
+        #     self.add_operation(Operation.create_vector_count(property_item))
+        #     self.add_operation(Operation.create_vector_get_by_index(property_item))
+        #     self.add_operation(Operation.create_vector_has_item(property_item))
+        #     self.add_operation(Operation.create_vector_add_item(property_item))
 
     def add_operation(self, operation_item):
         self._operation_list.append(operation_item)
 
-    def __dependance_list_image(self):
-        image = ""
-        image += build_list_image(self._dependance_list)
-        return image
-
-    def __property_list_image(self):
-        image = ""
-        image += build_list_image(self._property_list)
-        return image
-
-    def __operation_list_image(self):
-        image = ""
-        image += build_list_image(self._operation_list)
-        return image
+    def add_super_class_name(self, super_class_name):
+        assert_no_empty_string(super_class_name)
+        self.__super_class_name.append(super_class_name)
 
     def __str__(self):
 
@@ -526,13 +523,17 @@ class Class(Namespace):
             image += " is abstract"
 
         image += '\n'
-        image += self.__dependance_list_image()
+        image += build_list_image(self._dependance_list)
+
         if len(self._dependance_list) > 0:
             image += '\n'
-        image += self.__property_list_image()
+
+        image += build_list_image(self._property_list)
+
         if len(self._property_list) > 0 and len(self._operation_list) > 0:
             image += '\n'
-        image += self.__operation_list_image()
+
+        image += build_list_image(self._operation_list)
 
         return image
 
@@ -589,6 +590,10 @@ class Operation(Named_Element):
 
         return image
 
+    # TODO
+    #
+    # follwing static methods should be in the generator, not the model
+
     @staticmethod
     def create_vector_count(property_item):
         operation = Operation(name = property_item.name + "_count")
@@ -597,9 +602,11 @@ class Operation(Named_Element):
                                direction = Parameter.DIRECTION_IN,
                                of_type   = "object_t")
 
-        param_return = Parameter(name      = "result",
-                                 direction = Parameter.DIRECTION_RETURN,
-                                 of_type   = "natural")
+        param_return = Parameter(
+            name      = "result",
+            direction = Parameter.DIRECTION_RETURN,
+            of_type   = "natural"
+        )
 
         for param in (param_self, param_return):
             operation._parameter_list.append(param)
@@ -671,6 +678,7 @@ class Typed_Element(Named_Element):
     '''
     Element with a type (extended by Parameter and Property)
     '''
+
     def __init__(self, name, of_type, default = None):
         super().__init__(name)
         self.of_type = of_type

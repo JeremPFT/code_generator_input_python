@@ -98,11 +98,11 @@ def p_project_init(p):
     '''
     project_init : PROJECT IDENTIFIER output_directory project_type readme_content
     '''
-    p[0] = Project(name = p[2],
-                   output_directory = p[3],
-                   type = p[4],
-                   title = p[5][0],
-                   brief = p[5][1],
+    p[0] = Project(name              = p[2],
+                   output_directory  = p[3],
+                   type              = p[4],
+                   title             = p[5][0],
+                   brief             = p[5][1],
     )
     p.parser.current_project = p[0]
 
@@ -324,8 +324,12 @@ def p_value_object_init(p):
     '''
     value_object_init : VALUE_OBJECT IDENTIFIER
     '''
-    name = p[2]
-    result = Class(name = name, owner = p.parser.current_package)
+    data = {
+        "name"  : p[2],
+        "owner" : p.parser.current_package,
+    }
+
+    result = Class(**data)
 
     p.parser.current_class = result
 
@@ -336,7 +340,10 @@ def p_class_attribute_list_empty(p):
     '''
     class_attribute_list :
     '''
-    p[0] = { "is_abstract": False, "super_class": [] }
+    p[0] = {
+        "is_abstract": False,
+        "super_class": []
+    }
 
 def p_class_attribute_list_more(p):
     '''
@@ -353,7 +360,7 @@ def p_class_attribute_item_inheritance(p):
     '''
     class_attribute_item : NEW IDENTIFIER
     '''
-    p.parser.current_class.parent = p[2]
+    p.parser.current_class.add_super_class_name(p[2])
 
     # TODO allow qualified name for parent
     # TODO allow multiple parents
@@ -416,6 +423,7 @@ def p_operation_item(p):
     '''
     operation : operation_init parameter_list operation_return
     '''
+
     operation     = p[1]
     parameters    = p[2]
     returned_type = p[3]
