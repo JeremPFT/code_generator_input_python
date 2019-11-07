@@ -555,7 +555,9 @@ def p_project_type(p):
     prj_type = p[2]
 
     if not prj_type in Project_Types.VALUES:
-        print("!! SyntaxError: project type {!r} undefined line {}".format(prj_type, p.lineno(1)))
+        msg = "!! SyntaxError: project type {!r} undefined line {}"
+        msg = msg.format(prj_type, p.lineno(1))
+        print(msg)
         raise SyntaxError
 
     p[0] = p[2]

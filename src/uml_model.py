@@ -1,6 +1,7 @@
 from typing import List
 import os
 import logging
+
 from dataclasses import dataclass, field
 
 from src.utils import (
@@ -17,15 +18,16 @@ class NoNameError(Exception):
 
 
 class Project_Types:
-    TYPE_STATIC_LIB = "static_library"
-    TYPE_EXEC       = "executable"
-    TYPE_TEST       = "test"
+    STATIC_LIB = "static_library"
+    EXEC       = "executable"
+    TEST       = "test"
 
-    VALUES = [TYPE_STATIC_LIB, TYPE_EXEC, TYPE_TEST]
+    VALUES = [STATIC_LIB, EXEC, TEST]
 
     @staticmethod
     def is_valid(type):
         return type in Project_Types.VALUES
+
 
 class Project:
 
@@ -113,7 +115,7 @@ class Element:
     see UML 2.4.1 Infrastructure section 9.15.1
     '''
 
-    def __init__(self, owner = None, must_be_owned = False):
+    def __init__(self, owner = None, must_be_owned = True):
         self.log = logging.getLogger(__name__ + ":" + __class__.__name__)
         self.log.setLevel("DEBUG")
 
@@ -122,7 +124,7 @@ class Element:
         self.__owner         = None
         self.__owned_element = []
         self.__owned_comment = []
-        self.__must_be_owned = False
+        self.__must_be_owned = True
 
         self.__set_owner(owner)
         self.__set_must_be_owned(must_be_owned)
@@ -218,30 +220,10 @@ class Multiplicity(Element):
                  lower = 1,
                  upper = 1):
 
-        self.__is_ordered = False
-        self.__is_unique = True
-        self.__is_lower = 1
-        self.__is_upper = 1
-
         self.__set_is_ordered(is_ordered)
         self.__set_is_unique(is_unique)
         self.__set_lower(lower)
         self.__set_upper(upper)
-
-        # assert type(is_ordered) == bool, \
-        #     "is_ordered must be a boolean"
-
-        # assert type(is_ordered) == bool, \
-        #     "is_ordered must be a boolean"
-
-        # assert upper == None or upper > 0, \
-        #     "upper must be an integer > 0"
-
-        # assert lower == None or lower >= 0, \
-        #     "lower must be an integer >= 0"
-
-        # assert upper == None or ( lower != None and upper >= lower ), \
-        #     "upper must greater than lower"
 
     @property
     def is_ordered(self):
@@ -281,14 +263,14 @@ class Named_Element(Element):
 
     NOTES
     - the possibility of no name or empty name is ignored
-    - a named element is considered as a packageable element
+    - a named element is always considered as a packageable element
     '''
 
     def separator(Cls):
         'return separator used to form qualified name'
         return "::"
 
-    def __init__(self, name, owner = None, must_be_owned = False):
+    def __init__(self, name, owner = None, must_be_owned = True):
         super().__init__(owner = owner,
                          must_be_owned = must_be_owned)
 
@@ -296,15 +278,6 @@ class Named_Element(Element):
         self.__set_owner(owner)
 
         self.__set_qualified_name()
-
-        # if owner == None:
-        #     template = "building {self.__class__.__name__} " \
-        #         + "named {self.name!r} without owner"
-        #     print(template.format(self=self))
-        # else:
-        #     template = "building {self.__class__.__name__} " \
-        #         + "named {self.name} with owner {owner.name}"
-        #     print(template.format(self=self, owner=self.owner))
 
     @property
     def name(self):
@@ -321,14 +294,6 @@ class Named_Element(Element):
     def __set_owner(self, owner):
         if owner != None: assert_type(owner, Namespace)
         self.__owner = owner
-
-    @property
-    def must_be_owned(self):
-        return self.__must_be_owned
-
-    def __set_must_be_owned(self, must_be_owned):
-        assert_type(must_be_owned, bool)
-        self.__must_be_owned = must_be_owned
 
     @property
     def qualified_name(self):
@@ -349,17 +314,15 @@ class Named_Element(Element):
 
 
 class VisibilityKind():
-    PUBLIC = 0
-    PRIVATE = 1
+    PUBLIC    = 0
+    PRIVATE   = 1
     PROTECTED = 2
-    PACKAGE = 3
+    PACKAGE   = 3
+
+    VALUES = [PUBLIC, PRIVATE, PROTECTED, PACKAGE]
 
     def __init__(self, value):
-        assert value == PUBLIC \
-            or value == PROTECTED \
-            or value == PRIVATE \
-            or value == PACKAGE, \
-            'unknown visibility: ' + str(value)
+        assert value in VALUES, 'unknown visibility: ' + str(value)
 
         self.value
 
@@ -385,6 +348,10 @@ class Namespace(Named_Element):
         super().__init__(name, owner)
         self._owned_member = []
 
+    @property
+    def owned_member(self):
+        return self.__owned_member
+
     def find_element(self, name):
         for element in self._owned_member:
             if element.name == name:
@@ -393,19 +360,23 @@ class Namespace(Named_Element):
         return None
 
     def add_owned_member(self, member):
-        if member == None:
-            raise Exception("member to add is None")
-        self._owned_member.append(member)
+        assert member != None, "member to add is None"
+        assert_type(self, Named_Element)
+
+        self.__owned_member.append(member)
 
 
 class Package(Namespace):
+
     def __init__(self, name, owner = None):
         self.log = logging.getLogger(__name__ + ":" + __class__.__name__)
         self.log.setLevel("DEBUG")
 
         self.log.info("initialize project with\n" + str(vars()))
 
-        super().__init__(name, owner)
+        super().__init__(name          = name,
+                         owner         = owner,
+                         must_be_owned = True)
 
         self.project = None
 
@@ -430,14 +401,45 @@ class Package(Namespace):
         return image
 
 
-class Type_Definition(Named_Element):
+class Type(Named_Element):
     '''
     see UML 2.4.1 Superstructure section 7.3.52 Type
     '''
-    pass
+
+    pass # nothing to define
 
 
-class Data_Type(Type_Definition):
+class Classifier(Type):
+    '''
+    see UML 2.4.1 Superstructure section 7.3.8 Classifier
+    '''
+
+    def __init__(self, name, owner = None):
+        super().__init__(
+            name  = name,
+            owner = owner,
+        )
+        self.__namespace = Namespace(
+            name  = self.name,
+            owner = self.owner,
+        )
+
+    @property
+    def namespace(self):
+        return self.__namespace
+
+    @property
+    def owned_member(self):
+        return self.__namespace.owned_member()
+
+    def find_element(self, name):
+        return self.__namespace.find_element(name)
+
+    def add_owned_member(self, member):
+        self.__namespace.add_owned_member(member)
+
+
+class Data_Type(Classifier):
     '''
     see UML 2.4.1 Superstructure section 7.3.11 DataType
     '''
@@ -464,13 +466,11 @@ class Enumeration(Data_Type):
                 image += ", "
 
 
-class Class(Namespace):
+class Class(Data_Type):
     '''
     see UML 2.4.1 Infrastructure section 9.14
     see UML 2.4.1 Superstructure section 7.3.7 Class
     see UML 2.4.1 Superstructure section 7.3.20 Generalization
-
-    TODO class is a type or a namespace ?
     '''
     def __init__(self, name, owner, super_class_name = [], is_abstract = False):
         super().__init__(name, owner)
