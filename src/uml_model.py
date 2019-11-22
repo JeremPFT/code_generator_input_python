@@ -314,6 +314,10 @@ class Named_Element(Element):
 
 
 class VisibilityKind():
+    '''
+    enumeration for element visibility
+    '''
+
     PUBLIC    = 0
     PRIVATE   = 1
     PROTECTED = 2
@@ -383,14 +387,6 @@ class Package(Namespace):
 
     def __str__(self):
         image = super().__str__()
-
-        # if self.project == None:
-        #     image += "no output file"
-        # else:
-        #     image += "output file: %s" %  \
-        #     (self.project._output_directory \
-        #      + "/src/" + self.name + ".ads")
-
 
         if len(self._owned_member) > 0:
             image += '\n'

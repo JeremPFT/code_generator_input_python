@@ -15,6 +15,9 @@ from src.utils import (
 )
 
 class Test_Unnamed_Project(unittest.TestCase):
+    '''
+    check error if input file has no project name
+    '''
 
     @classmethod
     def setUpClass(cls):

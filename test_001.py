@@ -12,6 +12,9 @@ from src.utils import (
 )
 
 class Test_Project_Nominal_001(unittest.TestCase):
+    '''
+    check project fields and directory creation
+    '''
 
     TEST_ID = "001"
     PROJECT = None
