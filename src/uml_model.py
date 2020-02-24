@@ -121,10 +121,10 @@ class Element:
 
         self.log.info("initialize project with\n" + str(vars()))
 
-        self.__owner         = None
+        self.__owner         = owner
         self.__owned_element = []
         self.__owned_comment = []
-        self.__must_be_owned = True
+        self.__must_be_owned = must_be_owned
 
         self.__set_owner(owner)
         self.__set_must_be_owned(must_be_owned)
@@ -146,7 +146,7 @@ class Element:
     def __set_must_be_owned(self, must_be_owned):
         assert_type(must_be_owned, bool)
 
-        if must_be_owned and (owner == None):
+        if must_be_owned and (self.__owner == None):
             raise ValueError("the element must be owned")
 
     def add_owned_element(self, element):
@@ -284,7 +284,7 @@ class Named_Element(Element):
         return self.__name
 
     def __set_name(self, name):
-        assert_no_empty_string(name, int)
+        assert_no_empty_string(name)
         self.__name = name
 
     @property
@@ -300,7 +300,7 @@ class Named_Element(Element):
         return self.__qualified_name
 
     def __set_qualified_name(self):
-        self.__qualified_name = name
+        self.__qualified_name = self.__name
         parent = self.owner
         while parent != None:
             self.qualified_name += parent.name
@@ -348,8 +348,8 @@ class Namespace(Named_Element):
     ignoring member field (which include member imported or inherited)
     '''
 
-    def __init__(self, name, owner = None):
-        super().__init__(name, owner)
+    def __init__(self, name, owner = None, must_be_owned = False):
+        super().__init__(name, owner, must_be_owned)
         self._owned_member = []
 
     @property
@@ -380,7 +380,7 @@ class Package(Namespace):
 
         super().__init__(name          = name,
                          owner         = owner,
-                         must_be_owned = True)
+                         must_be_owned = False)
 
         self.project = None
 
