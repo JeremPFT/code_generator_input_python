@@ -1,3 +1,37 @@
+''' Utilities functions.
+
+- dbg
+Output given string
+
+- indent (class)
+Indent output code.
+
+- capitalize_identifier
+Capitalize first letter and each letter following a '_'
+
+- directory
+Normalize directory
+
+- rmdir
+Delete directory
+
+- build_dir
+Create recursively directory
+
+- dir_exists
+Return True if directory exists
+
+- text_files_match
+Return True if 2 files are the same
+
+- assert_no_empty_string
+
+- assert_type
+
+- build_list_image
+Use indent
+'''
+
 import os
 import shutil
 

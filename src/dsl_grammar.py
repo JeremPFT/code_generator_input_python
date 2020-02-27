@@ -1,5 +1,12 @@
 #! python3
 
+
+''' Defines input grammar.
+
+TODO define yas snippets to generate list rules
+'''
+
+
 import os
 import ply.yacc as yacc
 

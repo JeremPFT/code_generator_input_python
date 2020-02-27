@@ -1,3 +1,10 @@
+#! python3
+
+''' UML data structures.
+
+Used to build internal model from input to generate output.
+'''
+
 from typing import List
 import os
 import logging

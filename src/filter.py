@@ -1,3 +1,17 @@
+""" A Filter is used by a Template_Engine to transform given parameter.
+
+Defined filters:
+
+- Double
+Repeat given string (used to test filter principle).
+
+- Capitalize
+Capitalize given string.
+
+- Upper
+Uppercase given string.
+"""
+
 class Filter():
     # trying to build a OOP filters family
 

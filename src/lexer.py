@@ -1,3 +1,6 @@
+''' Defines input lexer.
+'''
+
 import ply.lex as lex
 
 reserved = {

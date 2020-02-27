@@ -1,3 +1,7 @@
+''' Output in-memory Ada project.
+
+'''
+
 import os
 
 from src.uml_model import *

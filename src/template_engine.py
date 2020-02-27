@@ -1,7 +1,7 @@
 #! python3
 
-'''
-Defines a simple template engine which should follow ada library Template Parser.
+''' A simple template engine which should follow ada library Template Parser.
+
 See http://docs.adacore.com/live/wave/aws/html/template_parser
 '''
 
