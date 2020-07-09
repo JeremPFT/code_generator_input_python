@@ -43,7 +43,7 @@ class Filter_Capitalize(Filter):
 
 class Filter_Upper(Filter):
     def __init__(self):
-        super().__init__("capitalize")
+        super().__init__("upper")
         Filter.registered.append(self)
 
     def process(self, tag_value):
@@ -52,7 +52,7 @@ class Filter_Upper(Filter):
 
 class Filter_Double(Filter):
     def __init__(self):
-        super().__init__("capitalize")
+        super().__init__("double")
         Filter.registered.append(self)
 
     def process(self, tag_value):
